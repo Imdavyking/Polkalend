@@ -69,6 +69,10 @@ mod polkalend {
                 self.liquidity_pool
                     .insert((caller, token), &(current_liquidity + amount));
             } else {
+                assert!(
+                    self.env().transferred_value() == 0,
+                    "you should not send native tokens"
+                );
                 // Call ERC-20 token's transfer_from on the token contract
                 let result = build_call::<Environment>()
                     .call(token)
