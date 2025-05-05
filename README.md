@@ -1,7 +1,3 @@
-Here’s a draft **README** for your project that can be used in your **Polkadot P2P lending and borrowing protocol**:
-
----
-
 # **Interest-Free P2P Lending Protocol**
 
 ## **Overview**
@@ -82,7 +78,6 @@ We welcome contributions! If you’d like to contribute to this project, please 
 3. **Substrate Node**:
    - You'll need a local Substrate-based blockchain or Polkadot development environment like a `Canvas` node or `substrate-node-template` to deploy and interact with the smart contract.
 
-
 ### Running the Local Development Chain
 
 1. Run a local Substrate development chain:
@@ -90,6 +85,7 @@ We welcome contributions! If you’d like to contribute to this project, please 
      ```bash
      substrate-contracts-node --dev --tmp
      ```
+
 ## Build the Marketplace Contract
 
 1. Compile the contract:
@@ -103,6 +99,7 @@ We welcome contributions! If you’d like to contribute to this project, please 
 ### Deploying the Contract
 
 https://faucet.polkadot.io/
+
 1. Go to the PolkadotJS Apps portal:
 
    - Open [UI ink](https://inkv6alpha.netlify.app/).
@@ -123,7 +120,6 @@ https://faucet.polkadot.io/
   ```bash
   cargo test
   ```
-
 
 ## **License**
 
