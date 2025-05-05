@@ -348,7 +348,7 @@ mod polkalend {
             collateral < required
         }
 
-        #[ink(message, payable)]
+        #[ink(message)]
         pub fn liquidate(&mut self, borrower: H160, token: H160) -> Result<()> {
             let debt = self.get_debt(borrower, token);
             if debt.is_zero() {
