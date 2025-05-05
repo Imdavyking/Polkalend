@@ -1,14 +1,14 @@
 #![cfg_attr(not(feature = "std"), no_std, no_main)]
-
+#[allow(clippy::cast_possible_truncation)]
 #[ink::contract]
 mod polkalend {
     use ink::env::call::{build_call, ExecutionInput, Selector};
     use ink::env::{address, caller};
     use ink::prelude::vec::Vec;
-    use ink::{storage::Mapping, H160, U256};
+    use ink::{storage::Mapping, H160, U256}; 
 
-    #[derive(Debug, PartialEq, Eq, Clone)]
-    #[cfg_attr(feature = "std", derive(scale_info::TypeInfo))]
+    #[derive(Debug, PartialEq, Eq)]
+    #[ink::scale_derive(Encode, Decode, TypeInfo)]
     pub enum Error {
         ZeroAmount,
         ZeroDuration,
@@ -16,7 +16,6 @@ mod polkalend {
     }
 
     pub type Result<T> = core::result::Result<T, Error>;
-    const TRANSFER_FROM_SELECTOR: [u8; 4] = [0x23, 0xb8, 0x72, 0xdd];
 
     #[ink(storage)]
     pub struct LendingPlatform {
@@ -58,7 +57,10 @@ mod polkalend {
             }
 
             let current_liquidity = self.liquidity_pool.get((caller, token)).unwrap_or_default();
+            let total_success_liquidity = current_liquidity.checked_add(amount).unwrap();
 
+            self.liquidity_pool
+                .insert((caller, token), &(total_success_liquidity));
             if token == H160::zero() {
                 assert!(
                     self.env().transferred_value() == amount,
@@ -66,38 +68,22 @@ mod polkalend {
                 );
                 // Native token logic (you may track value sent via `self.env().transferred_value()`)
                 // For now we just record it — you'd want to validate this against `amount`.
-                self.liquidity_pool
-                    .insert((caller, token), &(current_liquidity + amount));
             } else {
                 assert!(
                     self.env().transferred_value() == U256::zero(),
                     "you should not send native tokens"
                 );
                 // Call ERC-20 token's transfer_from on the token contract
-                let result = build_call::<Environment>()
+                build_call::<Environment>()
                     .call(token)
                     .exec_input(
-                        ExecutionInput::new(Selector::new(TRANSFER_FROM_SELECTOR)) // transferFrom(address from, address to, uint256 amount)
+                        ExecutionInput::new(Selector::new(ink::selector_bytes!("transfer_from"))) // transferFrom(address from, address to, uint256 amount)
                             .push_arg(caller)
                             .push_arg(address())
                             .push_arg(amount),
                     )
-                    .returns::<core::result::Result<bool, ink::env::Error>>()
-                    .try_invoke();
-
-                match result {
-                    Ok(v) => {
-                        if let Ok(true) = v {
-                            // Update the liquidity pool
-
-                            self.liquidity_pool
-                                .insert((caller, token), &(current_liquidity + amount));
-                        } else {
-                            return Err(Error::InsufficientLiquidity);
-                        }
-                    }
-                    _ => return Err(Error::InsufficientLiquidity),
-                }
+                    .returns::<()>()
+                    .invoke();
             }
 
             Ok(())
