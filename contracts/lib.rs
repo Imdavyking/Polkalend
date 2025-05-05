@@ -3,7 +3,7 @@
 #[ink::contract]
 mod polkalend {
     use ink::env::call::{build_call, ExecutionInput, Selector};
-    use ink::env::caller;
+    use ink::env::{address, caller};
     use ink::prelude::vec::Vec;
     use ink::{storage::Mapping, H160, U256};
 
@@ -57,6 +57,8 @@ mod polkalend {
                 return Err(Error::ZeroAmount);
             }
 
+            let current_liquidity = self.liquidity_pool.get((caller, token)).unwrap_or_default();
+
             if token == H160::zero() {
                 assert!(
                     self.env().transferred_value() == amount,
@@ -64,7 +66,8 @@ mod polkalend {
                 );
                 // Native token logic (you may track value sent via `self.env().transferred_value()`)
                 // For now we just record it — you'd want to validate this against `amount`.
-                self.liquidity_pool.insert((caller, token), &amount);
+                self.liquidity_pool
+                    .insert((caller, token), &(current_liquidity + amount));
             } else {
                 // Call ERC-20 token's transfer_from on the token contract
                 let result = build_call::<Environment>()
@@ -72,15 +75,22 @@ mod polkalend {
                     .exec_input(
                         ExecutionInput::new(Selector::new(TRANSFER_FROM_SELECTOR)) // transferFrom(address from, address to, uint256 amount)
                             .push_arg(caller)
-                            .push_arg(self.env().account_id::<H160>())
+                            .push_arg(address())
                             .push_arg(amount),
                     )
                     .returns::<bool>()
-                    .fire();
+                    .try_invoke();
 
                 match result {
-                    Ok(true) => {
-                        self.liquidity_pool.insert((caller, token), &amount);
+                    Ok(v) => {
+                        if v.is_ok() && v.unwrap() {
+                            // Update the liquidity pool
+
+                            self.liquidity_pool
+                                .insert((caller, token), &(current_liquidity + amount));
+                        } else {
+                            return Err(Error::InsufficientLiquidity);
+                        }
                     }
                     _ => return Err(Error::InsufficientLiquidity),
                 }
@@ -90,11 +100,3 @@ mod polkalend {
         }
     }
 }
-
-// if self.env().transfer(self.env().caller(), value).is_err() {
-//     panic!(
-//         "requested transfer failed. this can be the case if the contract does not\
-//          have sufficient free funds or if the transfer would have brought the\
-//          contract's balance below minimum balance."
-//     )
-// }
