@@ -78,12 +78,12 @@ mod polkalend {
                             .push_arg(address())
                             .push_arg(amount),
                     )
-                    .returns::<bool>()
+                    .returns::<core::result::Result<bool, ink::env::Error>>()
                     .try_invoke();
 
                 match result {
                     Ok(v) => {
-                        if v.is_ok() && v.unwrap() {
+                        if let Ok(true) = v {
                             // Update the liquidity pool
 
                             self.liquidity_pool

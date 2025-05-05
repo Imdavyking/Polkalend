@@ -63,6 +63,68 @@ We welcome contributions! If you’d like to contribute to this project, please 
 
 ---
 
+## Prerequisites
+
+1. **Rust Setup**:
+
+   - Make sure you have Rust installed. You can install it using:
+     ```bash
+     curl --proto '=https' --tlsv1.2 -sSf https://sh.rustup.rs | sh
+     ```
+
+2. **Cargo Contract**:
+
+   - Install `cargo-contract` which is required to build Ink! smart contracts:
+     ```bash
+     cargo install cargo-contract --force --locked
+     ```
+
+3. **Substrate Node**:
+   - You'll need a local Substrate-based blockchain or Polkadot development environment like a `Canvas` node or `substrate-node-template` to deploy and interact with the smart contract.
+
+
+### Running the Local Development Chain
+
+1. Run a local Substrate development chain:
+   - If you have `substrate-contracts-node`, you can start it by running:
+     ```bash
+     substrate-contracts-node --dev --tmp
+     ```
+## Build the Marketplace Contract
+
+1. Compile the contract:
+
+   ```bash
+   cargo contract build
+   ```
+
+   This will generate a `.contract` file in the `target` folder, which includes the compiled WebAssembly (`.wasm`) and metadata files required to deploy the contract.
+
+### Deploying the Contract
+
+https://faucet.polkadot.io/
+1. Go to the PolkadotJS Apps portal:
+
+   - Open [UI ink](https://inkv6alpha.netlify.app/).
+
+2. Upload and Deploy the Contract:
+   - Navigate to the "Contracts" tab and click on "Deploy Contract."
+   - Upload the `.contract` file that was generated during the build process.
+   - Set the initial parameters (if any) and deploy the contract.
+
+### Interacting with the Contract
+
+1. Once deployed, you can interact with the contract via the PolkadotJS UI
+2. You can also run tests or write scripts to interact with the contract programmatically.
+
+### Testing
+
+- If you want to test the contract logic before deployment, write unit tests inside the contract using `#[ink::test]` and run:
+  ```bash
+  cargo test
+  ```
+
+
 ## **License**
 
 This project is licensed under the MIT License - see the [LICENSE](LICENSE) file for details.
