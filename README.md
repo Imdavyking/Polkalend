@@ -74,9 +74,9 @@ We welcome contributions! If you’d like to contribute to this project, please 
 
 2. **Cargo Contract**:
 
-   - Install `cargo-contract` which is required to build Ink! smart contracts:
+   - Install `cargo-contract@v6` which is required to build Ink! smart contracts:
      ```bash
-     cargo install cargo-contract --force --locked
+     cargo install cargo-contract --version 6.0.0-alpha --locked
      ```
 
 3. **Substrate Node**:
