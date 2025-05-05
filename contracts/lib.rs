@@ -2,6 +2,7 @@
 
 #[ink::contract]
 mod polkalend {
+    use ink::env::call::{build_call, ExecutionInput, Selector};
     use ink::env::caller;
     use ink::prelude::vec::Vec;
     use ink::{storage::Mapping, H160, U256};
@@ -15,6 +16,7 @@ mod polkalend {
     }
 
     pub type Result<T> = core::result::Result<T, Error>;
+    const TRANSFER_FROM_SELECTOR: [u8; 4] = [0x23, 0xb8, 0x72, 0xdd];
 
     #[ink(storage)]
     pub struct LendingPlatform {
@@ -45,9 +47,54 @@ mod polkalend {
             }
         }
 
-        #[ink(message)]
+        // allow lenders to deposit tokens into the liquidity pool
+        #[ink(message, payable)]
         pub fn create_loan(&mut self, token: H160, amount: U256, duration: U256) -> Result<()> {
-            self.liquidity_pool.insert((caller(), token), &amount);
+            let caller = self.env().caller();
+
+            // Check if amount or duration is zero
+            if amount.is_zero() || duration.is_zero() {
+                return Err(Error::ZeroAmount);
+            }
+
+            if token == H160::zero() {
+                assert!(
+                    self.env().transferred_value() == amount,
+                    "payment was not equal to the amount"
+                );
+                // Native token logic (you may track value sent via `self.env().transferred_value()`)
+                // For now we just record it — you'd want to validate this against `amount`.
+                self.liquidity_pool.insert((caller, token), &amount);
+            } else {
+                // Call ERC-20 token's transfer_from on the token contract
+                let result = build_call::<Environment>()
+                    .call(token)
+                    .exec_input(
+                        ExecutionInput::new(Selector::new(TRANSFER_FROM_SELECTOR)) // transferFrom(address from, address to, uint256 amount)
+                            .push_arg(caller)
+                            .push_arg(self.env().account_id::<H160>())
+                            .push_arg(amount),
+                    )
+                    .returns::<bool>()
+                    .fire();
+
+                match result {
+                    Ok(true) => {
+                        self.liquidity_pool.insert((caller, token), &amount);
+                    }
+                    _ => return Err(Error::InsufficientLiquidity),
+                }
+            }
+
+            Ok(())
         }
     }
 }
+
+// if self.env().transfer(self.env().caller(), value).is_err() {
+//     panic!(
+//         "requested transfer failed. this can be the case if the contract does not\
+//          have sufficient free funds or if the transfer would have brought the\
+//          contract's balance below minimum balance."
+//     )
+// }
