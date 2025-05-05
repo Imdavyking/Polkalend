@@ -70,7 +70,7 @@ mod polkalend {
                     .insert((caller, token), &(current_liquidity + amount));
             } else {
                 assert!(
-                    self.env().transferred_value() == 0,
+                    self.env().transferred_value() == U256::zero(),
                     "you should not send native tokens"
                 );
                 // Call ERC-20 token's transfer_from on the token contract
