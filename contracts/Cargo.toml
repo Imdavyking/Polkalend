@@ -5,7 +5,7 @@ authors = ["[your_name] <[your_email]>"]
 edition = "2021"
 
 [dependencies]
-ink = { version = "6.0.0-alpha", default-features = false }
+ink = { version = "6.0.0-alpha", default-features = false, features = ["unstable-hostfn"] }
 scale-info = { version = "2.11.1", default-features = false, features = ["derive"] }
 
 [dev-dependencies]
