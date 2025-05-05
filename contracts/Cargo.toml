@@ -1,0 +1,23 @@
+[package]
+name = "marketplace"
+version = "0.1.0"
+authors = ["[your_name] <[your_email]>"]
+edition = "2021"
+
+[dependencies]
+ink = { version = "6.0.0-alpha", default-features = false }
+scale-info = { version = "2.1", default-features = false, features = ["derive"] }
+
+[dev-dependencies]
+ink_e2e = { version = "6.0.0-alpha" }
+
+[lib]
+path = "lib.rs"
+
+[features]
+default = ["std"]
+std = [
+    "ink/std",
+]
+ink-as-dependency = []
+e2e-tests = []
