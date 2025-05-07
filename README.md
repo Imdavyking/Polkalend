@@ -91,7 +91,8 @@ We welcome contributions! If you’d like to contribute to this project, please 
 1. Compile the contract:
 
    ```bash
-   cargo contract build
+   cargo contract build --release
+   cargo contract instantiate --suri //Alice --url wss://westend-asset-hub-rpc.polkadot.io
    ```
 
    This will generate a `.contract` file in the `target` folder, which includes the compiled WebAssembly (`.wasm`) and metadata files required to deploy the contract.

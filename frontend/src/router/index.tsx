@@ -1,6 +1,7 @@
 import { useRoutes } from "react-router-dom";
 import Home from "../views/home/main";
 import NotFound from "../views/not-found/main";
+import CreateLoan from "../views/create-loan/main";
 function Router() {
   const routes = [
     {
@@ -10,6 +11,10 @@ function Router() {
     {
       path: "*",
       element: <NotFound />,
+    },
+    {
+      path: "/create-loan",
+      element: <CreateLoan />,
     },
   ];
   return useRoutes(routes);

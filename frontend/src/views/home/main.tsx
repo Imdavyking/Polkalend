@@ -1,76 +1,108 @@
-const Home = () => {
+// pages/index.tsx or Home.tsx
+
+import { Canvas } from "@react-three/fiber";
+import { Suspense } from "react";
+import { OrbitControls } from "@react-three/drei";
+import { motion } from "framer-motion";
+
+const ThreeBackground = () => (
+  <Canvas className="absolute inset-0 z-0">
+    <ambientLight intensity={0.5} />
+    <pointLight position={[10, 10, 10]} />
+    <OrbitControls enableZoom={false} />
+    <mesh rotation={[90, 0, 20]}>
+      <torusKnotGeometry args={[10, 3, 100, 16]} />
+      <meshStandardMaterial color="#6b21a8" wireframe />
+    </mesh>
+  </Canvas>
+);
+
+export default function Home() {
   return (
-    <div className="min-h-screen bg-gradient-to-br from-purple-900 via-indigo-900 to-black text-white p-6">
-      <header className="text-center mb-16">
-        <h1 className="text-5xl font-bold tracking-wide mb-4">Polkalend</h1>
-        <p className="text-lg text-indigo-300 max-w-2xl mx-auto">
-          A decentralized protocol built on the <strong>Polkadot</strong>{" "}
-          blockchain, offering <strong>interest-free loans</strong> using a
-          collateralized debt position (CDP) model. Inspired by the{" "}
-          <strong>Liquity</strong> protocol.
-        </p>
-      </header>
+    <div className="relative min-h-screen bg-black overflow-hidden text-white">
+      <ThreeBackground />
 
-      <main className="max-w-4xl mx-auto grid grid-cols-1 md:grid-cols-2 gap-10">
-        {/* Borrow Panel */}
-        <section className="bg-white/10 backdrop-blur-sm rounded-2xl p-6 shadow-lg">
-          <h2 className="text-2xl font-semibold mb-4">Open a Loan</h2>
-          <div className="space-y-4">
-            <div>
-              <label className="block text-sm text-gray-300 mb-1">
-                Collateral (DOT)
-              </label>
-              <input
-                type="number"
-                className="w-full px-4 py-2 rounded bg-white/10 text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-purple-500"
-                placeholder="Enter amount"
-              />
-            </div>
-            <div>
-              <label className="block text-sm text-gray-300 mb-1">
-                Loan Amount (PLUSD)
-              </label>
-              <input
-                type="number"
-                className="w-full px-4 py-2 rounded bg-white/10 text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-indigo-500"
-                placeholder="Enter amount"
-              />
-            </div>
-            <button className="w-full py-2 bg-purple-600 hover:bg-purple-700 rounded-lg font-semibold">
-              Open CDP
-            </button>
-          </div>
+      <div className="relative z-10">
+        <header className="text-center py-24 px-4">
+          <motion.h1
+            className="text-6xl font-extrabold text-purple-400 drop-shadow-lg mb-6"
+            initial={{ opacity: 0, y: -40 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.8 }}
+          >
+            Polkalend
+          </motion.h1>
+
+          <motion.p
+            className="text-xl max-w-2xl mx-auto text-indigo-300"
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            transition={{ delay: 0.4 }}
+          >
+            A decentralized protocol offering{" "}
+            <strong>interest-free loans</strong> on the{" "}
+            <span className="text-pink-400">Polkadot</span> blockchain. Backed
+            by over-collateralized debt positions.
+          </motion.p>
+        </header>
+
+        {/* About Section */}
+        <section className="py-20 px-6 max-w-5xl mx-auto grid md:grid-cols-2 gap-12">
+          <motion.div
+            className="bg-white/10 p-8 rounded-2xl shadow-lg backdrop-blur-md"
+            initial={{ opacity: 0, x: -50 }}
+            whileInView={{ opacity: 1, x: 0 }}
+            transition={{ duration: 0.8 }}
+            viewport={{ once: true }}
+          >
+            <h2 className="text-3xl font-bold text-purple-300 mb-4">
+              Why Polkalend?
+            </h2>
+            <ul className="space-y-3 text-gray-300">
+              <li>🔐 No interest — truly DeFi</li>
+              <li>⚖️ Fully collateralized using DOT or stablecoins</li>
+              <li>💸 Borrow PLUSD against your locked assets</li>
+              <li>💼 No credit score, no central authority</li>
+            </ul>
+          </motion.div>
+
+          {/* How It Works */}
+          <motion.div
+            className="bg-white/10 p-8 rounded-2xl shadow-lg backdrop-blur-md"
+            initial={{ opacity: 0, x: 50 }}
+            whileInView={{ opacity: 1, x: 0 }}
+            transition={{ duration: 0.8 }}
+            viewport={{ once: true }}
+          >
+            <h2 className="text-3xl font-bold text-indigo-300 mb-4">
+              How It Works
+            </h2>
+            <ol className="list-decimal list-inside space-y-3 text-gray-300">
+              <li>Deposit your DOT or stablecoins</li>
+              <li>Open a loan by locking your collateral</li>
+              <li>Receive PLUSD in your wallet</li>
+              <li>Repay anytime and withdraw your collateral</li>
+            </ol>
+          </motion.div>
         </section>
 
-        {/* Manage Loan Panel */}
-        <section className="bg-white/10 backdrop-blur-sm rounded-2xl p-6 shadow-lg">
-          <h2 className="text-2xl font-semibold mb-4">Manage Your Loan</h2>
-          <div className="space-y-4">
-            <div>
-              <label className="block text-sm text-gray-300 mb-1">
-                Repay (PLUSD)
-              </label>
-              <input
-                type="number"
-                className="w-full px-4 py-2 rounded bg-white/10 text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-pink-500"
-                placeholder="Amount to repay"
-              />
-            </div>
-            <button className="w-full py-2 bg-pink-600 hover:bg-pink-700 rounded-lg font-semibold">
-              Repay Loan
-            </button>
-            <button className="w-full py-2 bg-indigo-600 hover:bg-indigo-700 rounded-lg font-semibold">
-              Withdraw Collateral
-            </button>
-          </div>
-        </section>
-      </main>
+        {/* Call to Action */}
+        <motion.div
+          className="text-center mt-24 mb-16"
+          initial={{ opacity: 0, scale: 0.95 }}
+          whileInView={{ opacity: 1, scale: 1 }}
+          transition={{ duration: 0.5 }}
+          viewport={{ once: true }}
+        >
+          <button className="px-8 py-4 bg-gradient-to-r from-purple-600 to-indigo-600 rounded-full text-xl font-semibold hover:scale-105 transition-transform shadow-lg">
+            Launch App
+          </button>
+        </motion.div>
 
-      <footer className="text-center text-sm text-gray-500 mt-16">
-        Built with ❤️ for the Polkadot ecosystem.
-      </footer>
+        <footer className="text-center text-gray-500 text-sm pb-8">
+          Built with ❤️ for the Polkadot ecosystem
+        </footer>
+      </div>
     </div>
   );
-};
-
-export default Home;
+}

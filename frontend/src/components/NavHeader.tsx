@@ -5,7 +5,7 @@ import { Menu, X } from "lucide-react";
 const NavHeader = () => {
   const [menuOpen, setMenuOpen] = useState(false);
 
-  const links = [{ to: "/how-it-works", label: "How It Works" }];
+  const links = [{ to: "/create-loan", label: "Create Loan" }];
 
   const renderLinks = (isMobile = false) =>
     links.map(({ to, label }) => (
