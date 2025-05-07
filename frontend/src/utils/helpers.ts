@@ -5,6 +5,7 @@ import { ss58Address } from "@polkadot-labs/hdkd-helpers";
 import { ethers } from "ethers";
 
 import { keccak256 } from "ethers";
+import { InjectedPolkadotAccount } from "polkadot-api/pjs-signer";
 const SS58_PREFIX = 42;
 
 export function bigintToFixedSizeArray4(
@@ -57,3 +58,4 @@ export function ss58ToH160(accountSS58Address: string): Binary {
 export function convertPublicKeyToSs58(publickey: Uint8Array) {
   return ss58Address(publickey, SS58_PREFIX);
 }
+

@@ -11,6 +11,7 @@ import {
   ss58ToH160,
 } from "../utils/helpers";
 import { InjectedPolkadotAccount } from "polkadot-api/pjs-signer";
+import { Binary } from "polkadot-api";
 
 const client = createClient(
   withPolkadotSdkCompat(
@@ -18,10 +19,61 @@ const client = createClient(
   )
 );
 
-// "0x95f5af38f10492ad29ac06086846b8c6f9509f51"
 const typedApi = client.getTypedApi(westend);
 const polkalend = getInkClient(contracts.polkalend);
 const WESTEND_ASSETHUB_DECIMALS = 18;
+
+const getContractCode = async () => {
+  const url = "/polkalend.polkavm";
+  const response = await fetch(url);
+  if (!response.ok) {
+    throw new Error(`Failed to fetch contract code: ${response.statusText}`);
+  }
+  const data = await response.arrayBuffer();
+  const binaryData = new Uint8Array(data);
+  return binaryData;
+};
+
+export const instantiateContract = async (account: InjectedPolkadotAccount) => {
+  const binaryData = await getContractCode();
+  const tx = typedApi.tx.Revive.instantiate_with_code({
+    data: Binary.fromHex("0x00"),
+    value: BigInt(0),
+    gas_limit: {
+      ref_time: BigInt(1e5),
+      proof_size: BigInt(1e5),
+    },
+    storage_deposit_limit: BigInt(1e10),
+    code: Binary.fromBytes(binaryData),
+    salt: undefined,
+  });
+  let result = await tx.signAndSubmit(account.polkadotSigner);
+  console.log("Instantiate contract result", result);
+};
+
+export const instantiateUser = async (account: InjectedPolkadotAccount) => {
+  try {
+    const ss58Address = convertPublicKeyToSs58(
+      account.polkadotSigner.publicKey
+    );
+
+    const h160Account = ss58ToH160(ss58Address);
+
+    const mapped = await typedApi.query.Revive.OriginalAccount.getValue(
+      h160Account
+    );
+    console.log("Mapped account", mapped);
+    if (mapped) {
+      console.log("Already mapped");
+      return;
+    }
+    await typedApi.tx.Revive.map_account().signAndSubmit(
+      account.polkadotSigner
+    );
+  } catch (error) {
+    console.error("Error instantiating user:", error);
+  }
+};
 
 export const getLiquidity = async ({
   lender,
@@ -55,30 +107,6 @@ export const getLiquidity = async ({
   }
 };
 
-export const instantiateUser = async (account: InjectedPolkadotAccount) => {
-  try {
-    const ss58Address = convertPublicKeyToSs58(
-      account.polkadotSigner.publicKey
-    );
-
-    const h160Account = ss58ToH160(ss58Address);
-
-    const mapped = await typedApi.query.Revive.OriginalAccount.getValue(
-      h160Account
-    );
-    console.log("Mapped account", mapped);
-    if (mapped) {
-      console.log("Already mapped");
-      return;
-    }
-    await typedApi.tx.Revive.map_account().signAndSubmit(
-      account.polkadotSigner
-    );
-  } catch (error) {
-    console.error("Error instantiating user:", error);
-  }
-};
-
 export const createLoan = async ({
   account,
   token,
@@ -92,12 +120,6 @@ export const createLoan = async ({
 }) => {
   await instantiateUser(account);
   const createLoan = polkalend.message("create_loan");
-
-  console.log({
-    token: FixedSizeBinary.fromHex(token),
-    amount: bigintToFixedSizeArray4(BigInt(amount)),
-    duration: bigintToFixedSizeArray4(duration),
-  });
 
   const data = createLoan.encode({
     token: FixedSizeBinary.fromHex(token),
