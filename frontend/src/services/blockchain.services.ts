@@ -4,8 +4,16 @@ import { createClient, FixedSizeBinary } from "polkadot-api";
 import { contracts, westend } from "@polkadot-api/descriptors";
 import { getInkClient } from "polkadot-api/ink";
 import { CONTRACT_ADDRESS } from "../utils/constants";
-import { accountToHex, bigintToFixedSizeArray4 } from "../utils/fixarray.util";
+import { ethers } from "ethers";
+import {
+  accountToHex,
+  bigintToFixedSizeArray4,
+  convertPublicKeyToSs58,
+  ss58ToH160,
+} from "../utils/helpers";
 import { InjectedPolkadotAccount } from "polkadot-api/pjs-signer";
+import { Binary } from "lucide-react";
+
 const client = createClient(
   withPolkadotSdkCompat(
     getWsProvider("wss://westend-asset-hub-rpc.polkadot.io")
@@ -16,26 +24,6 @@ const client = createClient(
 const typedApi = client.getTypedApi(westend);
 const polkalend = getInkClient(contracts.polkalend);
 const WESTEND_ASSETHUB_DECIMALS = 18;
-
-export const getUserH160 = async (account: InjectedPolkadotAccount) => {
-  await instantiateUser(account);
-  const getLiquidity = polkalend.message("get_user_h160");
-  const data = getLiquidity.encode({});
-
-  const response = await typedApi.apis.ReviveApi.call(
-    account.address,
-    FixedSizeBinary.fromHex(CONTRACT_ADDRESS),
-    0n,
-    undefined,
-    undefined,
-    data
-  );
-  if (response.result.success) {
-    const responseMessage = getLiquidity.decode(response.result.value);
-    console.log("Result response", responseMessage);
-    return responseMessage;
-  }
-};
 
 export const getLiquidity = async ({
   lender,
@@ -71,6 +59,20 @@ export const getLiquidity = async ({
 
 export const instantiateUser = async (account: InjectedPolkadotAccount) => {
   try {
+    const ss58Address = convertPublicKeyToSs58(
+      account.polkadotSigner.publicKey
+    );
+
+    const h160Account = ss58ToH160(ss58Address);
+
+    const mapped = await typedApi.query.Revive.OriginalAccount.getValue(
+      h160Account
+    );
+    console.log("Mapped account", mapped);
+    if (mapped) {
+      console.log("Already mapped");
+      return;
+    }
     await typedApi.tx.Revive.map_account().signAndSubmit(
       account.polkadotSigner
     );
