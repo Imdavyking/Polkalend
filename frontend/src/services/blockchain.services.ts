@@ -4,7 +4,6 @@ import { createClient, FixedSizeBinary } from "polkadot-api";
 import { contracts, westend } from "@polkadot-api/descriptors";
 import { getInkClient } from "polkadot-api/ink";
 import { CONTRACT_ADDRESS } from "../utils/constants";
-import { ethers } from "ethers";
 import {
   accountToHex,
   bigintToFixedSizeArray4,
@@ -12,7 +11,6 @@ import {
   ss58ToH160,
 } from "../utils/helpers";
 import { InjectedPolkadotAccount } from "polkadot-api/pjs-signer";
-import { Binary } from "lucide-react";
 
 const client = createClient(
   withPolkadotSdkCompat(
