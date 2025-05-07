@@ -101,12 +101,6 @@ mod polkalend {
             self.min_collateral_ratio
         }
 
-        #[ink(message)]
-        pub fn transfer(&mut self, to: H160, value: U256) -> Result<()> {
-            let from = self.env().caller();
-            // self.transfer_from_to(&from, &to, value)
-        }
-
         // allow lenders to deposit tokens into the liquidity pool
         // #[ink(message, payable)]
         // pub fn create_loan(&mut self, token: H160, amount: U256, duration: U256) -> bool {
