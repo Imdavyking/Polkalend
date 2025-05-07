@@ -82,20 +82,53 @@ We welcome contributions! If you’d like to contribute to this project, please 
 
 1. Run a local Substrate development chain:
    - If you have `substrate-contracts-node`, you can start it by running:
-     ```bash
-     substrate-contracts-node --dev --tmp
-     ```
+     `bash
+substrate-contracts-node --dev --tmp
+`
+     Thanks for the clarification.
 
-## Build the Marketplace Contract
+Since there's **only Option B** available—i.e., you must call `mapAccount` through the **runtime extrinsic**, here's the corrected and specific version of your instructions:
 
-1. Compile the contract:
+---
 
-   ```bash
-   cargo contract build --release
-   cargo contract instantiate --suri //Alice --url wss://westend-asset-hub-rpc.polkadot.io
-   ```
+## ✅ Build and Map Your Account for the Marketplace Contract
 
-   This will generate a `.contract` file in the `target` folder, which includes the compiled WebAssembly (`.wasm`) and metadata files required to deploy the contract.
+### 1. Compile the Smart Contract
+
+Use the following command to compile your ink! contract in release mode:
+
+```bash
+cargo contract build --release
+```
+
+This will generate a `.contract` file in the `target/ink/` directory. This file contains:
+
+- The contract’s compiled WebAssembly bytecode (`.wasm`)
+- Metadata (`.json`)
+- Everything needed to deploy the contract
+
+---
+
+### 2. Map Your Account (Required Before Using the Contract)
+
+Before interacting with the contract, you must **register (map) your account** using a runtime extrinsic. This step prevents the `AccountUnmapped` error.
+
+#### 🧭 How to Do It in Polkadot.js Apps
+
+1. Navigate to [**Developer → Extrinsics**](https://polkadot.js.org/apps/#/extrinsics)
+2. **Select your account** in the "using the selected account" dropdown
+3. For the "submit the following extrinsic" section:
+
+   - Choose the **pallet** (`revive`)
+   - Select the **`mapAccount`** function
+
+4. Leave any required parameters (if any) blank or fill as needed
+5. Click **Submit Transaction**
+6. Sign and confirm the transaction
+
+Once complete, your account will be mapped and you can interact with the contract.
+
+---
 
 ### Deploying the Contract
 

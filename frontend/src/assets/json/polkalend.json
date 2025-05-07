@@ -1,10 +1,10 @@
 {
   "source": {
-    "hash": "0xcfda5a67d05ae28e3cd4b3e30fd8e1ea4baea05895c4e5bec6a91bf13c46bb83",
+    "hash": "0xe5e3fc737176f43ab11e5efb997b29158745254fded3de569e96f0a395f95acf",
     "language": "ink! 6.0.0-alpha",
     "compiler": "rustc 1.86.0",
     "build_info": {
-      "build_mode": "Debug",
+      "build_mode": "Release",
       "cargo_contract_version": "6.0.0-alpha",
       "rust_toolchain": "stable-aarch64-apple-darwin"
     }
@@ -25,7 +25,7 @@
         "payable": false,
         "returnType": {
           "displayName": ["ink_primitives", "ConstructorResult"],
-          "type": 25
+          "type": 24
         },
         "selector": "0x9bae9d5e"
       }
@@ -34,11 +34,11 @@
     "environment": {
       "accountId": {
         "displayName": ["AccountId"],
-        "type": 34
+        "type": 33
       },
       "balance": {
         "displayName": ["Balance"],
-        "type": 23
+        "type": 35
       },
       "blockNumber": {
         "displayName": ["BlockNumber"],
@@ -239,7 +239,7 @@
     ],
     "lang_error": {
       "displayName": ["ink", "LangError"],
-      "type": 26
+      "type": 25
     },
     "messages": [
       {
@@ -273,7 +273,7 @@
         "payable": true,
         "returnType": {
           "displayName": ["ink", "MessageResult"],
-          "type": 27
+          "type": 26
         },
         "selector": "0x36469ae4"
       },
@@ -322,7 +322,7 @@
         "payable": false,
         "returnType": {
           "displayName": ["ink", "MessageResult"],
-          "type": 27
+          "type": 26
         },
         "selector": "0xb00ff015"
       },
@@ -357,7 +357,7 @@
         "payable": false,
         "returnType": {
           "displayName": ["ink", "MessageResult"],
-          "type": 27
+          "type": 26
         },
         "selector": "0xe36ebe8c"
       },
@@ -366,8 +366,8 @@
           {
             "label": "new_ratio",
             "type": {
-              "displayName": ["u128"],
-              "type": 23
+              "displayName": ["U256"],
+              "type": 0
             }
           }
         ],
@@ -378,7 +378,7 @@
         "payable": false,
         "returnType": {
           "displayName": ["ink", "MessageResult"],
-          "type": 27
+          "type": 26
         },
         "selector": "0x4eeadb0d"
       },
@@ -399,7 +399,7 @@
         "payable": false,
         "returnType": {
           "displayName": ["ink", "MessageResult"],
-          "type": 30
+          "type": 29
         },
         "selector": "0x62af3bd0"
       },
@@ -427,7 +427,7 @@
         "payable": false,
         "returnType": {
           "displayName": ["ink", "MessageResult"],
-          "type": 31
+          "type": 30
         },
         "selector": "0x71706a12"
       },
@@ -455,7 +455,7 @@
         "payable": false,
         "returnType": {
           "displayName": ["ink", "MessageResult"],
-          "type": 31
+          "type": 30
         },
         "selector": "0xdf0652af"
       },
@@ -483,7 +483,7 @@
         "payable": false,
         "returnType": {
           "displayName": ["ink", "MessageResult"],
-          "type": 31
+          "type": 30
         },
         "selector": "0xf48343ad"
       },
@@ -504,7 +504,7 @@
         "payable": false,
         "returnType": {
           "displayName": ["ink", "MessageResult"],
-          "type": 30
+          "type": 29
         },
         "selector": "0xf920150a"
       },
@@ -513,8 +513,8 @@
           {
             "label": "new_ratio",
             "type": {
-              "displayName": ["u128"],
-              "type": 23
+              "displayName": ["U256"],
+              "type": 0
             }
           }
         ],
@@ -525,7 +525,7 @@
         "payable": false,
         "returnType": {
           "displayName": ["ink", "MessageResult"],
-          "type": 27
+          "type": 26
         },
         "selector": "0xa9228e9f"
       },
@@ -546,7 +546,7 @@
         "payable": false,
         "returnType": {
           "displayName": ["ink", "MessageResult"],
-          "type": 27
+          "type": 26
         },
         "selector": "0x367facd6"
       },
@@ -567,7 +567,7 @@
         "payable": false,
         "returnType": {
           "displayName": ["ink", "MessageResult"],
-          "type": 31
+          "type": 30
         },
         "selector": "0x16bc00b1"
       },
@@ -595,7 +595,7 @@
         "payable": false,
         "returnType": {
           "displayName": ["ink", "MessageResult"],
-          "type": 32
+          "type": 31
         },
         "selector": "0x1e79b607"
       },
@@ -623,7 +623,7 @@
         "payable": false,
         "returnType": {
           "displayName": ["ink", "MessageResult"],
-          "type": 27
+          "type": 26
         },
         "selector": "0x4e3c6966"
       }
@@ -698,7 +698,7 @@
               "layout": {
                 "leaf": {
                   "key": "0x00000000",
-                  "ty": 23
+                  "ty": 0
                 }
               },
               "name": "min_collateral_ratio"
@@ -717,7 +717,7 @@
         }
       },
       "root_key": "0x00000000",
-      "ty": 24
+      "ty": 23
     }
   },
   "types": [
@@ -1066,14 +1066,6 @@
       "id": 23,
       "type": {
         "def": {
-          "primitive": "u128"
-        }
-      }
-    },
-    {
-      "id": 24,
-      "type": {
-        "def": {
           "composite": {
             "fields": [
               {
@@ -1098,8 +1090,8 @@
               },
               {
                 "name": "min_collateral_ratio",
-                "type": 23,
-                "typeName": "<u128 as::ink::storage::traits::AutoStorableHint<::ink::storage\n::traits::ManualKey<3663493314u32, ()>,>>::Type"
+                "type": 0,
+                "typeName": "<U256 as::ink::storage::traits::AutoStorableHint<::ink::storage\n::traits::ManualKey<3663493314u32, ()>,>>::Type"
               },
               {
                 "name": "owner",
@@ -1113,7 +1105,7 @@
       }
     },
     {
-      "id": 25,
+      "id": 24,
       "type": {
         "def": {
           "variant": {
@@ -1130,7 +1122,7 @@
               {
                 "fields": [
                   {
-                    "type": 26
+                    "type": 25
                   }
                 ],
                 "index": 1,
@@ -1146,14 +1138,14 @@
           },
           {
             "name": "E",
-            "type": 26
+            "type": 25
           }
         ],
         "path": ["Result"]
       }
     },
     {
-      "id": 26,
+      "id": 25,
       "type": {
         "def": {
           "variant": {
@@ -1169,7 +1161,7 @@
       }
     },
     {
-      "id": 27,
+      "id": 26,
       "type": {
         "def": {
           "variant": {
@@ -1177,7 +1169,7 @@
               {
                 "fields": [
                   {
-                    "type": 28
+                    "type": 27
                   }
                 ],
                 "index": 0,
@@ -1186,7 +1178,7 @@
               {
                 "fields": [
                   {
-                    "type": 26
+                    "type": 25
                   }
                 ],
                 "index": 1,
@@ -1198,18 +1190,18 @@
         "params": [
           {
             "name": "T",
-            "type": 28
+            "type": 27
           },
           {
             "name": "E",
-            "type": 26
+            "type": 25
           }
         ],
         "path": ["Result"]
       }
     },
     {
-      "id": 28,
+      "id": 27,
       "type": {
         "def": {
           "variant": {
@@ -1226,7 +1218,7 @@
               {
                 "fields": [
                   {
-                    "type": 29
+                    "type": 28
                   }
                 ],
                 "index": 1,
@@ -1242,14 +1234,14 @@
           },
           {
             "name": "E",
-            "type": 29
+            "type": 28
           }
         ],
         "path": ["Result"]
       }
     },
     {
-      "id": 29,
+      "id": 28,
       "type": {
         "def": {
           "variant": {
@@ -1297,6 +1289,18 @@
               {
                 "index": 10,
                 "name": "LoanNotEligibleForLiquidation"
+              },
+              {
+                "index": 11,
+                "name": "InsufficientTransferredValue"
+              },
+              {
+                "index": 12,
+                "name": "YouShouldNotSendDot"
+              },
+              {
+                "index": 13,
+                "name": "PaymentDoesNotMatchAmount"
               }
             ]
           }
@@ -1305,7 +1309,7 @@
       }
     },
     {
-      "id": 30,
+      "id": 29,
       "type": {
         "def": {
           "variant": {
@@ -1322,7 +1326,7 @@
               {
                 "fields": [
                   {
-                    "type": 26
+                    "type": 25
                   }
                 ],
                 "index": 1,
@@ -1338,14 +1342,14 @@
           },
           {
             "name": "E",
-            "type": 26
+            "type": 25
           }
         ],
         "path": ["Result"]
       }
     },
     {
-      "id": 31,
+      "id": 30,
       "type": {
         "def": {
           "variant": {
@@ -1362,7 +1366,7 @@
               {
                 "fields": [
                   {
-                    "type": 26
+                    "type": 25
                   }
                 ],
                 "index": 1,
@@ -1378,14 +1382,14 @@
           },
           {
             "name": "E",
-            "type": 26
+            "type": 25
           }
         ],
         "path": ["Result"]
       }
     },
     {
-      "id": 32,
+      "id": 31,
       "type": {
         "def": {
           "variant": {
@@ -1393,7 +1397,7 @@
               {
                 "fields": [
                   {
-                    "type": 33
+                    "type": 32
                   }
                 ],
                 "index": 0,
@@ -1402,7 +1406,7 @@
               {
                 "fields": [
                   {
-                    "type": 26
+                    "type": 25
                   }
                 ],
                 "index": 1,
@@ -1414,18 +1418,18 @@
         "params": [
           {
             "name": "T",
-            "type": 33
+            "type": 32
           },
           {
             "name": "E",
-            "type": 26
+            "type": 25
           }
         ],
         "path": ["Result"]
       }
     },
     {
-      "id": 33,
+      "id": 32,
       "type": {
         "def": {
           "primitive": "bool"
@@ -1433,13 +1437,13 @@
       }
     },
     {
-      "id": 34,
+      "id": 33,
       "type": {
         "def": {
           "composite": {
             "fields": [
               {
-                "type": 35,
+                "type": 34,
                 "typeName": "[u8; 32]"
               }
             ]
@@ -1449,7 +1453,7 @@
       }
     },
     {
-      "id": 35,
+      "id": 34,
       "type": {
         "def": {
           "array": {
@@ -1460,13 +1464,21 @@
       }
     },
     {
+      "id": 35,
+      "type": {
+        "def": {
+          "primitive": "u128"
+        }
+      }
+    },
+    {
       "id": 36,
       "type": {
         "def": {
           "composite": {
             "fields": [
               {
-                "type": 35,
+                "type": 34,
                 "typeName": "[u8; 32]"
               }
             ]
