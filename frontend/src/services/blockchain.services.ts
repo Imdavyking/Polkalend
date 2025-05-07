@@ -11,6 +11,8 @@ const client = createClient(
     getWsProvider("wss://westend-asset-hub-rpc.polkadot.io")
   )
 );
+
+// "0x95f5af38f10492ad29ac06086846b8c6f9509f51"
 const typedApi = client.getTypedApi(westend);
 const polkalend = getInkClient(contracts.polkalend);
 const WESTEND_ASSETHUB_DECIMALS = 18;
@@ -90,6 +92,12 @@ export const createLoan = async ({
 }) => {
   await instantiateUser(account);
   const createLoan = polkalend.message("create_loan");
+
+  console.log({
+    token: FixedSizeBinary.fromHex(token),
+    amount: bigintToFixedSizeArray4(BigInt(amount)),
+    duration: bigintToFixedSizeArray4(duration),
+  });
 
   const data = createLoan.encode({
     token: FixedSizeBinary.fromHex(token),

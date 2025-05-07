@@ -129,7 +129,7 @@ export default function CreateLoan() {
 
         <button
           type="submit"
-          className="w-full bg-indigo-600 text-white py-2 px-4 rounded-md hover:bg-indigo-700"
+          className="w-full bg-indigo-600 text-white py-2 px-4 rounded-md hover:bg-indigo-700 flex items-center justify-center transition duration-200"
         >
           {creatingLoan ? (
             <FaSpinner className="w-5 h-5 animate-spin" />
