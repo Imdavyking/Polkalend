@@ -100,8 +100,8 @@ mod polkalend {
         }
 
         #[ink(message)]
-        pub fn get_owner(&self) -> H160 {
-            self.owner
+        pub fn get_user_h160(&self) -> H160 {
+            self.env().caller()
         }
 
         // allow lenders to deposit tokens into the liquidity pool

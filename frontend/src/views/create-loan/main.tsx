@@ -2,13 +2,14 @@ import { useState } from "react";
 import { tokens } from "../../utils/constants";
 import { toast } from "react-toastify";
 import { FaSpinner } from "react-icons/fa";
-import { createLoan, getLiquidity } from "../../services/blockchain.services";
-import { connectWallet } from "../../services/connect.wallet.services";
+import { createLoan } from "../../services/blockchain.services";
+import { useWallet } from "../../context/WalletContext";
 export default function CreateLoan() {
   const [selectedToken, setSelectedToken] = useState(tokens[0]);
   const [amount, setAmount] = useState("");
   const [duration, setDuration] = useState("");
   const [creatingLoan, setCreatingLoan] = useState(false);
+  const { account } = useWallet();
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
@@ -43,15 +44,13 @@ export default function CreateLoan() {
       }
       setCreatingLoan(true);
 
-      const account = await connectWallet();
-      console.log(account.address);
-      await getLiquidity({
-        lender: account.address,
-        token,
-      });
+      if (!account) {
+        toast.error("Please connect your wallet");
+        return;
+      }
 
-      return;
       await createLoan({
+        account: account,
         token,
         amount: Number(amount),
         duration: BigInt(duration),

@@ -4,8 +4,8 @@ import { createClient, FixedSizeBinary } from "polkadot-api";
 import { contracts, westend } from "@polkadot-api/descriptors";
 import { getInkClient } from "polkadot-api/ink";
 import { CONTRACT_ADDRESS } from "../utils/constants";
-import { connectWallet } from "./connect.wallet.services";
-import { bigintToFixedSizeArray4 } from "../utils/fixarray.util";
+import { accountToHex, bigintToFixedSizeArray4 } from "../utils/fixarray.util";
+import { InjectedPolkadotAccount } from "polkadot-api/pjs-signer";
 const client = createClient(
   withPolkadotSdkCompat(
     getWsProvider("wss://westend-asset-hub-rpc.polkadot.io")
@@ -14,24 +14,11 @@ const client = createClient(
 const typedApi = client.getTypedApi(westend);
 const polkalend = getInkClient(contracts.polkalend);
 const WESTEND_ASSETHUB_DECIMALS = 18;
-export const getLiquidity = async ({
-  lender,
-  token,
-}: {
-  lender: string;
-  token: string;
-}) => {
-  await instantiateUser();
-  const getLiquidity = polkalend.message("get_liquidity");
-  const account = await connectWallet();
-  const data = getLiquidity.encode({
-    lender: FixedSizeBinary.fromHex(
-      "0x95f5af38f10492ad29ac06086846b8c6f9509f51"
-    ),
-    token: FixedSizeBinary.fromHex(token),
-  });
 
-  // "0x95f5af38f10492ad29ac06086846b8c6f9509f51" for 5D2NFQmJxPZDGtX3kmqJ4FF7oafXh4zHwoARpdGcepV6NXEo
+export const getUserH160 = async (account: InjectedPolkadotAccount) => {
+  await instantiateUser(account);
+  const getLiquidity = polkalend.message("get_user_h160");
+  const data = getLiquidity.encode({});
 
   const response = await typedApi.apis.ReviveApi.call(
     account.address,
@@ -48,9 +35,40 @@ export const getLiquidity = async ({
   }
 };
 
-export const instantiateUser = async () => {
+export const getLiquidity = async ({
+  lender,
+  token,
+  account,
+}: {
+  lender: string;
+  token: string;
+  account: InjectedPolkadotAccount;
+}) => {
+  await instantiateUser(account);
+
+  const getLiquidity = polkalend.message("get_liquidity");
+  const data = getLiquidity.encode({
+    lender: FixedSizeBinary.fromHex(accountToHex(lender)),
+    token: FixedSizeBinary.fromHex(token),
+  });
+
+  const response = await typedApi.apis.ReviveApi.call(
+    account.address,
+    FixedSizeBinary.fromHex(CONTRACT_ADDRESS),
+    0n,
+    undefined,
+    undefined,
+    data
+  );
+  if (response.result.success) {
+    const responseMessage = getLiquidity.decode(response.result.value);
+    console.log("Result response", responseMessage);
+    return responseMessage;
+  }
+};
+
+export const instantiateUser = async (account: InjectedPolkadotAccount) => {
   try {
-    const account = await connectWallet();
     await typedApi.tx.Revive.map_account().signAndSubmit(
       account.polkadotSigner
     );
@@ -60,6 +78,7 @@ export const instantiateUser = async () => {
 };
 
 export const createLoan = async ({
+  account,
   token,
   amount,
   duration,
@@ -67,8 +86,9 @@ export const createLoan = async ({
   token: string;
   amount: number;
   duration: bigint;
+  account: InjectedPolkadotAccount;
 }) => {
-  await instantiateUser();
+  await instantiateUser(account);
   const createLoan = polkalend.message("create_loan");
 
   const data = createLoan.encode({
@@ -78,7 +98,6 @@ export const createLoan = async ({
   });
 
   const value = BigInt(Math.trunc(amount * 10 ** WESTEND_ASSETHUB_DECIMALS));
-  const account = await connectWallet();
 
   const response = await typedApi.apis.ReviveApi.call(
     account.address,

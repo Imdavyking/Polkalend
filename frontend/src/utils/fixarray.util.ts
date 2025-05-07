@@ -1,3 +1,5 @@
+import { FixedSizeBinary } from "polkadot-api";
+
 export function bigintToFixedSizeArray4(
   value: bigint
 ): [bigint, bigint, bigint, bigint] {
@@ -20,4 +22,15 @@ export function fixedSizeArray4ToBigint(
     ((arr[2] & ((1n << 64n) - 1n)) << 128n) |
     ((arr[3] & ((1n << 64n) - 1n)) << 192n)
   );
+}
+
+export const isHex = (str: string) => {
+  return typeof str === 'string' && /^0x[0-9a-fA-F]+$/.test(str)
+}
+
+
+export function accountToHex(address: string, isPrefixed = true) {
+  if (isHex(address)) return address;
+  const hex = FixedSizeBinary.fromAccountId32<32>(address).asHex();
+  return isPrefixed ? hex : hex.slice(2);
 }
