@@ -3,7 +3,6 @@ import NavHeader from "./components/NavHeader";
 import Router from "./router";
 import { BrowserRouter } from "react-router-dom";
 import { ToastContainer } from "react-toastify";
-import metadata from "./assets/json/polkalend.json";
 
 function App() {
   return (

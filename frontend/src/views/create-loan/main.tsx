@@ -44,7 +44,7 @@ export default function CreateLoan() {
       setCreatingLoan(true);
 
       const account = await connectWallet();
-
+      console.log(account.address);
       await getLiquidity({
         lender: account.address,
         token,

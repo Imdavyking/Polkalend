@@ -18,6 +18,12 @@ export const connectWallet = async () => {
   const accounts: InjectedPolkadotAccount[] = selectedExtension.getAccounts();
 
   // The signer for each account is in the `polkadotSigner` property of `InjectedPolkadotAccount`
-
+  localStorage.setItem("connectedWallet", accounts[0].address);
   return accounts[0];
 };
+
+export function hasConnected() {
+  const isConnectedBefore = localStorage.getItem("connectedWallet");
+
+  return !!isConnectedBefore;
+}

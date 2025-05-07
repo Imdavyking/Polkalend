@@ -1,11 +1,25 @@
-import { useState } from "react";
-import { connectWallet } from "../services/connect.wallet.services";
+import { useEffect, useState } from "react";
+import {
+  hasConnected,
+  connectWallet,
+} from "../services/connect.wallet.services";
 import { ellipsify } from "../utils/ellipsify";
 
 export default function ConnectWalletButton() {
   const [address, setAddress] = useState<string | null>(null);
   const [isConnecting, setIsConnecting] = useState(false);
   const [error, setError] = useState("");
+
+  useEffect(() => {
+    const autoConnect = async () => {
+      console.log("App mounted");
+      const userconnected = hasConnected();
+      if (userconnected) {
+        handleConnect();
+      }
+    };
+    autoConnect();
+  }, []);
 
   const handleConnect = async () => {
     setIsConnecting(true);
