@@ -1,22 +1,11 @@
 import { useState } from "react";
 import { CONTRACT_ADDRESS, tokens } from "../../utils/constants";
-import { ChainContract, useTx, useWallet, useContract } from "useink";
-import { useTxNotifications } from "useink/notifications";
-import {
-  isPendingSignature,
-  planckToDecimalFormatted,
-  shouldDisable,
-} from "useink/utils";
 import metadata from "../../assets/json/polkalend.json";
 
 export default function CreateLoan() {
   const [selectedToken, setSelectedToken] = useState(tokens[0]);
   const [amount, setAmount] = useState("");
   const [duration, setDuration] = useState("");
-  const { account } = useWallet();
-  const polkalendContract = useContract(CONTRACT_ADDRESS || "", metadata);
-  const transfer = useTx<null>(polkalendContract, "transfer");
-  useTxNotifications(transfer);
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
