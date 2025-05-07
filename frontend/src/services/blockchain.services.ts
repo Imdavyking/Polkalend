@@ -20,12 +20,17 @@ export const getLiquidity = async ({
   lender: string;
   token: string;
 }) => {
+  await instantiateUser();
   const getLiquidity = polkalend.message("get_liquidity");
   const account = await connectWallet();
   const data = getLiquidity.encode({
-    lender: FixedSizeBinary.fromHex(lender),
+    lender: FixedSizeBinary.fromHex(
+      "0x95f5af38f10492ad29ac06086846b8c6f9509f51"
+    ),
     token: FixedSizeBinary.fromHex(token),
   });
+
+  // "0x95f5af38f10492ad29ac06086846b8c6f9509f51" for 5D2NFQmJxPZDGtX3kmqJ4FF7oafXh4zHwoARpdGcepV6NXEo
 
   const response = await typedApi.apis.ReviveApi.call(
     account.address,
@@ -55,6 +60,28 @@ function bigintToFixedSizeArray4(
   return [part0, part1, part2, part3];
 }
 
+function fixedSizeArray4ToBigint(
+  arr: [bigint, bigint, bigint, bigint]
+): bigint {
+  return (
+    (arr[0] & ((1n << 64n) - 1n)) |
+    ((arr[1] & ((1n << 64n) - 1n)) << 64n) |
+    ((arr[2] & ((1n << 64n) - 1n)) << 128n) |
+    ((arr[3] & ((1n << 64n) - 1n)) << 192n)
+  );
+}
+
+export const instantiateUser = async () => {
+  try {
+    const account = await connectWallet();
+    await typedApi.tx.Revive.map_account().signAndSubmit(
+      account.polkadotSigner
+    );
+  } catch (error) {
+    console.error("Error instantiating user:", error);
+  }
+};
+
 export const createLoan = async ({
   token,
   amount,
@@ -64,6 +91,7 @@ export const createLoan = async ({
   amount: number;
   duration: bigint;
 }) => {
+  await instantiateUser();
   const createLoan = polkalend.message("create_loan");
 
   const data = createLoan.encode({
