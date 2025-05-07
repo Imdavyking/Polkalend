@@ -12,7 +12,6 @@ export default function ConnectWalletButton() {
 
   useEffect(() => {
     const autoConnect = async () => {
-      console.log("App mounted");
       const userconnected = hasConnected();
       if (userconnected) {
         handleConnect();
