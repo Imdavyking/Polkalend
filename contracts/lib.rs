@@ -79,6 +79,9 @@ mod polkalend {
         InvalidRatio,
         LoanNotFound,
         LoanNotEligibleForLiquidation,
+        InsufficientTransferredValue,
+        YouShouldNotSendDot,
+        PaymentDoesNotMatchAmount,
     }
 
     pub type Result<T> = core::result::Result<T, Error>;
@@ -96,300 +99,291 @@ mod polkalend {
             }
         }
 
-        #[ink(message)]
-        pub fn get_collaterial_ratio(&self) -> U256 {
-            self.min_collateral_ratio
+        // allow lenders to deposit tokens into the liquidity pool
+        #[ink(message, payable)]
+        pub fn create_loan(&mut self, token: H160, amount: U256, duration: U256) -> Result<()> {
+            let user = self.env().caller();
+
+            if amount.is_zero() {
+                return Err(Error::ZeroAmount);
+            }
+            if duration.is_zero() {
+                return Err(Error::ZeroDuration);
+            }
+
+            let current_liquidity = self.liquidity_pool.get((user, token)).unwrap_or_default();
+            let updated = current_liquidity.checked_add(amount).unwrap();
+
+            self.liquidity_pool.insert((user, token), &updated);
+
+            if token == H160::zero() {
+                if self.env().transferred_value() != amount {
+                    return Err(Error::InsufficientTransferredValue);
+                }
+            } else {
+                if self.env().transferred_value() != U256::zero() {
+                    return Err(Error::YouShouldNotSendDot);
+                }
+                build_call::<Environment>()
+                    .call(token)
+                    .exec_input(
+                        ExecutionInput::new(Selector::new(ink::selector_bytes!("transfer_from")))
+                            .push_arg(user)
+                            .push_arg(address())
+                            .push_arg(amount),
+                    )
+                    .returns::<()>()
+                    .invoke();
+            }
+
+            // self.env().emit_event(LoanCreated {
+            //     lender: user,
+            //     token,
+            //     amount,
+            // });
+
+            Ok(())
         }
 
-        // allow lenders to deposit tokens into the liquidity pool
-        // #[ink(message, payable)]
-        // pub fn create_loan(&mut self, token: H160, amount: U256, duration: U256) -> bool {
-        //     true
-        // let caller = self.env().caller();
+        #[ink(message)]
+        pub fn accept_loan(
+            &mut self,
+            lender: H160,
+            token: H160,
+            amount: U256,
+            collateral_token: H160,
+            collateral_amount: U256,
+        ) -> Result<()> {
+            let borrower = self.env().caller();
 
-        // if amount.is_zero() {
-        //     return Err(Error::ZeroAmount);
-        // }
-        // if duration.is_zero() {
-        //     return Err(Error::ZeroDuration);
-        // }
+            if amount.is_zero() || collateral_amount.is_zero() {
+                return Err(Error::ZeroAmount);
+            }
 
-        // let current_liquidity = self.liquidity_pool.get((caller, token)).unwrap_or_default();
-        // let updated = current_liquidity.checked_add(amount).unwrap();
+            let liquidity = self.liquidity_pool.get((lender, token)).unwrap_or_default();
+            if liquidity < amount {
+                return Err(Error::InsufficientLiquidity);
+            }
 
-        // self.liquidity_pool.insert((caller, token), &updated);
+            // Check minimum collateral ratio
+            let required_collateral = amount
+                .checked_mul(U256::from(self.min_collateral_ratio))
+                .unwrap()
+                .checked_div(U256::from(10_000))
+                .unwrap();
+            if collateral_amount < required_collateral {
+                return Err(Error::ZeroDuration); // Using ZeroDuration here as a placeholder
+            }
 
-        // if token == H160::zero() {
-        //     assert!(
-        //         self.env().transferred_value() == amount,
-        //         "payment was not equal to the amount"
-        //     );
-        // } else {
-        //     assert!(
-        //         self.env().transferred_value() == U256::zero(),
-        //         "you should not send native tokens"
-        //     );
-        //     build_call::<Environment>()
-        //         .call(token)
-        //         .exec_input(
-        //             ExecutionInput::new(Selector::new(ink::selector_bytes!("transfer_from")))
-        //                 .push_arg(caller)
-        //                 .push_arg(address())
-        //                 .push_arg(amount),
-        //         )
-        //         .returns::<()>()
-        //         .invoke();
-        // }
+            // Lock collateral
+            self.collateral
+                .insert((borrower, collateral_token), &collateral_amount);
 
-        // self.env().emit_event(LoanCreated {
-        //     lender: caller,
-        //     token,
-        //     amount,
-        // });
+            // Reduce liquidity
+            self.liquidity_pool
+                .insert((lender, token), &(liquidity.checked_sub(amount).unwrap()));
 
-        // // Ok(())
-        // }
+            // Track loan
+            self.debt.insert((borrower, token), &amount);
+            let mut loans = self.active_loans.get(borrower).unwrap_or_default();
+            loans.push((lender, token, amount));
+            self.active_loans.insert(borrower, &loans);
 
-        // #[ink(message)]
-        // pub fn accept_loan(
-        //     &mut self,
-        //     lender: H160,
-        //     token: H160,
-        //     amount: U256,
-        //     collateral_token: H160,
-        //     collateral_amount: U256,
-        // ) -> Result<()> {
-        //     let borrower = self.env().caller();
+            // Send funds to borrower
+            if token == H160::zero() {
+                self.env()
+                    .transfer(borrower, amount)
+                    .map_err(|_| Error::InsufficientLiquidity)?; // Fallback error
+            } else {
+                build_call::<Environment>()
+                    .call(token)
+                    .exec_input(
+                        ExecutionInput::new(Selector::new(ink::selector_bytes!("transfer")))
+                            .push_arg(borrower)
+                            .push_arg(amount),
+                    )
+                    .returns::<()>()
+                    .invoke();
+            }
 
-        //     if amount.is_zero() || collateral_amount.is_zero() {
-        //         return Err(Error::ZeroAmount);
-        //     }
+            Ok(())
+        }
 
-        //     let liquidity = self.liquidity_pool.get((lender, token)).unwrap_or_default();
-        //     if liquidity < amount {
-        //         return Err(Error::InsufficientLiquidity);
-        //     }
+        #[ink(message)]
+        pub fn pay_loan(&mut self, token: H160, lender: H160, amount: U256) -> Result<()> {
+            let borrower = self.env().caller();
+            let debt = self.debt.get((borrower, token)).unwrap_or_default();
 
-        //     // Check minimum collateral ratio
-        //     let required_collateral = amount
-        //         .checked_mul(U256::from(self.min_collateral_ratio))
-        //         .unwrap()
-        //         .checked_div(U256::from(10_000))
-        //         .unwrap();
-        //     if collateral_amount < required_collateral {
-        //         return Err(Error::ZeroDuration); // Using ZeroDuration here as a placeholder
-        //     }
+            if debt < amount {
+                return Err(Error::InsufficientLiquidity);
+            }
 
-        //     // Lock collateral
-        //     self.collateral
-        //         .insert((borrower, collateral_token), &collateral_amount);
+            // Transfer repayment to lender
+            if token == H160::zero() {
+                if self.env().transferred_value() != amount {
+                    return Err(Error::PaymentDoesNotMatchAmount);
+                }
+                self.env()
+                    .transfer(lender, amount)
+                    .map_err(|_| Error::InsufficientLiquidity)?;
+            } else {
+                build_call::<Environment>()
+                    .call(token)
+                    .exec_input(
+                        ExecutionInput::new(Selector::new(ink::selector_bytes!("transfer_from")))
+                            .push_arg(borrower)
+                            .push_arg(lender)
+                            .push_arg(amount),
+                    )
+                    .returns::<()>()
+                    .invoke();
+            }
 
-        //     // Reduce liquidity
-        //     self.liquidity_pool
-        //         .insert((lender, token), &(liquidity.checked_sub(amount).unwrap()));
+            // Update debt
+            let updated_debt = debt.checked_sub(amount).unwrap();
+            self.debt.insert((borrower, token), &updated_debt);
 
-        //     // Track loan
-        //     self.debt.insert((borrower, token), &amount);
-        //     let mut loans = self.active_loans.get(borrower).unwrap_or_default();
-        //     loans.push((lender, token, amount));
-        //     self.active_loans.insert(borrower, &loans);
+            // If loan is fully repaid, release collateral
+            if updated_debt.is_zero() {
+                let collateral_token = token; // This assumes same token used. Adapt logic for different tokens.
+                let collateral_amount = self
+                    .collateral
+                    .get((borrower, collateral_token))
+                    .unwrap_or_default();
 
-        //     // Send funds to borrower
-        //     if token == H160::zero() {
-        //         self.env()
-        //             .transfer(borrower, amount)
-        //             .map_err(|_| Error::InsufficientLiquidity)?; // Fallback error
-        //     } else {
-        //         build_call::<Environment>()
-        //             .call(token)
-        //             .exec_input(
-        //                 ExecutionInput::new(Selector::new(ink::selector_bytes!("transfer")))
-        //                     .push_arg(borrower)
-        //                     .push_arg(amount),
-        //             )
-        //             .returns::<()>()
-        //             .invoke();
-        //     }
+                if collateral_token == H160::zero() {
+                    self.env()
+                        .transfer(borrower, collateral_amount)
+                        .map_err(|_| Error::InsufficientLiquidity)?;
+                } else {
+                    build_call::<Environment>()
+                        .call(collateral_token)
+                        .exec_input(
+                            ExecutionInput::new(Selector::new(ink::selector_bytes!("transfer")))
+                                .push_arg(borrower)
+                                .push_arg(collateral_amount),
+                        )
+                        .returns::<()>()
+                        .invoke();
+                }
 
-        //     Ok(())
-        // }
+                self.collateral
+                    .insert((borrower, collateral_token), &U256::zero());
+            }
 
-        // #[ink(message)]
-        // pub fn pay_loan(&mut self, token: H160, lender: H160, amount: U256) -> Result<()> {
-        //     let borrower = self.env().caller();
-        //     let debt = self.debt.get((borrower, token)).unwrap_or_default();
+            Ok(())
+        }
 
-        //     if debt < amount {
-        //         return Err(Error::InsufficientLiquidity);
-        //     }
+        #[ink(message)]
+        pub fn set_min_collateral_ratio(&mut self, new_ratio: U256) -> Result<()> {
+            if self.env().caller() != self.owner {
+                return Err(Error::Unauthorized);
+            }
+            self.min_collateral_ratio = new_ratio;
+            Ok(())
+        }
 
-        //     // Transfer repayment to lender
-        //     if token == H160::zero() {
-        //         assert!(
-        //             self.env().transferred_value() == amount,
-        //             "payment does not match amount"
-        //         );
-        //         self.env()
-        //             .transfer(lender, amount)
-        //             .map_err(|_| Error::InsufficientLiquidity)?;
-        //     } else {
-        //         build_call::<Environment>()
-        //             .call(token)
-        //             .exec_input(
-        //                 ExecutionInput::new(Selector::new(ink::selector_bytes!("transfer_from")))
-        //                     .push_arg(borrower)
-        //                     .push_arg(lender)
-        //                     .push_arg(amount),
-        //             )
-        //             .returns::<()>()
-        //             .invoke();
-        //     }
+        #[ink(message)]
+        pub fn get_user_loans(&self, borrower: H160) -> Vec<(H160, H160, U256)> {
+            self.active_loans.get(borrower).unwrap_or_default()
+        }
 
-        //     // Update debt
-        //     let updated_debt = debt.checked_sub(amount).unwrap();
-        //     self.debt.insert((borrower, token), &updated_debt);
+        #[ink(message)]
+        pub fn get_liquidity(&self, lender: H160, token: H160) -> U256 {
+            self.liquidity_pool.get((lender, token)).unwrap_or_default()
+        }
 
-        //     // If loan is fully repaid, release collateral
-        //     if updated_debt.is_zero() {
-        //         let collateral_token = token; // This assumes same token used. Adapt logic for different tokens.
-        //         let collateral_amount = self
-        //             .collateral
-        //             .get((borrower, collateral_token))
-        //             .unwrap_or_default();
+        #[ink(message)]
+        pub fn get_debt(&self, borrower: H160, token: H160) -> U256 {
+            self.debt.get((borrower, token)).unwrap_or_default()
+        }
 
-        //         if collateral_token == H160::zero() {
-        //             self.env()
-        //                 .transfer(borrower, collateral_amount)
-        //                 .map_err(|_| Error::InsufficientLiquidity)?;
-        //         } else {
-        //             build_call::<Environment>()
-        //                 .call(collateral_token)
-        //                 .exec_input(
-        //                     ExecutionInput::new(Selector::new(ink::selector_bytes!("transfer")))
-        //                         .push_arg(borrower)
-        //                         .push_arg(collateral_amount),
-        //                 )
-        //                 .returns::<()>()
-        //                 .invoke();
-        //         }
+        #[ink(message)]
+        pub fn get_collateral(&self, borrower: H160, token: H160) -> U256 {
+            self.collateral.get((borrower, token)).unwrap_or_default()
+        }
 
-        //         self.collateral
-        //             .insert((borrower, collateral_token), &U256::zero());
-        //     }
+        #[ink(message)]
+        pub fn get_active_loans(&self, borrower: H160) -> Vec<(H160, H160, U256)> {
+            self.active_loans.get(borrower).unwrap_or_default()
+        }
 
-        //     Ok(())
-        // }
+        #[ink(message)]
+        pub fn update_min_collateral_ratio(&mut self, new_ratio: U256) -> Result<()> {
+            if self.env().caller() != self.owner {
+                return Err(Error::NotOwner);
+            }
+            if new_ratio < U256::from(10000) {
+                return Err(Error::InvalidRatio);
+            }
+            self.min_collateral_ratio = new_ratio;
+            Ok(())
+        }
 
-        // #[ink(message)]
-        // pub fn set_min_collateral_ratio(&mut self, new_ratio: U256) -> Result<()> {
-        //     if self.env().caller() != self.owner {
-        //         return Err(Error::Unauthorized);
-        //     }
-        //     self.min_collateral_ratio = new_ratio;
-        //     Ok(())
-        // }
+        #[ink(message)]
+        pub fn set_owner(&mut self, new_owner: H160) -> Result<()> {
+            if self.env().caller() != self.owner {
+                return Err(Error::NotOwner);
+            }
+            if new_owner == H160::zero() {
+                return Err(Error::InvalidOwner);
+            }
+            self.owner = new_owner;
+            Ok(())
+        }
+        #[ink(message)]
+        pub fn calculate_required_collateral(&self, amount: U256) -> U256 {
+            amount
+                .checked_mul(U256::from(self.min_collateral_ratio))
+                .unwrap()
+                .checked_div(U256::from(10_000))
+                .unwrap()
+        }
 
-        // #[ink(message)]
-        // pub fn get_user_loans(&self, borrower: H160) -> Vec<(H160, H160, U256)> {
-        //     self.active_loans.get(borrower).unwrap_or_default()
-        // }
+        #[ink(message)]
+        pub fn is_undercollateralized(&self, borrower: H160, token: H160) -> bool {
+            let debt = self.get_debt(borrower, token);
+            let collateral = self.get_collateral(borrower, token);
+            let required = self.calculate_required_collateral(debt);
+            collateral < required
+        }
 
-        // #[ink(message)]
-        // pub fn get_liquidity(&self, lender: H160, token: H160) -> U256 {
-        //     self.liquidity_pool.get((lender, token)).unwrap_or_default()
-        // }
+        #[ink(message)]
+        pub fn liquidate(&mut self, borrower: H160, token: H160) -> Result<()> {
+            let debt = self.get_debt(borrower, token);
+            if debt.is_zero() {
+                return Err(Error::LoanNotFound);
+            }
 
-        // #[ink(message)]
-        // pub fn get_debt(&self, borrower: H160, token: H160) -> U256 {
-        //     self.debt.get((borrower, token)).unwrap_or_default()
-        // }
+            if !self.is_undercollateralized(borrower, token) {
+                return Err(Error::LoanNotEligibleForLiquidation);
+            }
 
-        // #[ink(message)]
-        // pub fn get_collateral(&self, borrower: H160, token: H160) -> U256 {
-        //     self.collateral.get((borrower, token)).unwrap_or_default()
-        // }
+            let collateral_token = token; // simplify for demo
+            let collateral_amount = self.get_collateral(borrower, collateral_token);
 
-        // #[ink(message)]
-        // pub fn get_active_loans(&self, borrower: H160) -> Vec<(H160, H160, U256)> {
-        //     self.active_loans.get(borrower).unwrap_or_default()
-        // }
+            self.debt.insert((borrower, token), &U256::zero());
+            self.collateral
+                .insert((borrower, collateral_token), &U256::zero());
 
-        // #[ink(message)]
-        // pub fn update_min_collateral_ratio(&mut self, new_ratio: U256) -> Result<()> {
-        //     if self.env().caller() != self.owner {
-        //         return Err(Error::NotOwner);
-        //     }
-        //     if new_ratio < U256::from(10000) {
-        //         return Err(Error::InvalidRatio);
-        //     }
-        //     self.min_collateral_ratio = new_ratio;
-        //     Ok(())
-        // }
+            let caller = self.env().caller();
+            if collateral_token == H160::zero() {
+                self.env()
+                    .transfer(caller, collateral_amount)
+                    .map_err(|_| Error::TransferFailed)?;
+            } else {
+                build_call::<Environment>()
+                    .call(collateral_token)
+                    .exec_input(
+                        ExecutionInput::new(Selector::new(ink::selector_bytes!("transfer")))
+                            .push_arg(caller)
+                            .push_arg(collateral_amount),
+                    )
+                    .returns::<()>()
+                    .invoke();
+            }
 
-        // #[ink(message)]
-        // pub fn set_owner(&mut self, new_owner: H160) -> Result<()> {
-        //     if self.env().caller() != self.owner {
-        //         return Err(Error::NotOwner);
-        //     }
-        //     if new_owner == H160::zero() {
-        //         return Err(Error::InvalidOwner);
-        //     }
-        //     self.owner = new_owner;
-        //     Ok(())
-        // }
-        // #[ink(message)]
-        // pub fn calculate_required_collateral(&self, amount: U256) -> U256 {
-        //     amount
-        //         .checked_mul(U256::from(self.min_collateral_ratio))
-        //         .unwrap()
-        //         .checked_div(U256::from(10_000))
-        //         .unwrap()
-        // }
-
-        // #[ink(message)]
-        // pub fn is_undercollateralized(&self, borrower: H160, token: H160) -> bool {
-        //     let debt = self.get_debt(borrower, token);
-        //     let collateral = self.get_collateral(borrower, token);
-        //     let required = self.calculate_required_collateral(debt);
-        //     collateral < required
-        // }
-
-        // #[ink(message)]
-        // pub fn liquidate(&mut self, borrower: H160, token: H160) -> Result<()> {
-        //     let debt = self.get_debt(borrower, token);
-        //     if debt.is_zero() {
-        //         return Err(Error::LoanNotFound);
-        //     }
-
-        //     if !self.is_undercollateralized(borrower, token) {
-        //         return Err(Error::LoanNotEligibleForLiquidation);
-        //     }
-
-        //     let collateral_token = token; // simplify for demo
-        //     let collateral_amount = self.get_collateral(borrower, collateral_token);
-
-        //     self.debt.insert((borrower, token), &U256::zero());
-        //     self.collateral
-        //         .insert((borrower, collateral_token), &U256::zero());
-
-        //     let caller = self.env().caller();
-        //     if collateral_token == H160::zero() {
-        //         self.env()
-        //             .transfer(caller, collateral_amount)
-        //             .map_err(|_| Error::TransferFailed)?;
-        //     } else {
-        //         build_call::<Environment>()
-        //             .call(collateral_token)
-        //             .exec_input(
-        //                 ExecutionInput::new(Selector::new(ink::selector_bytes!("transfer")))
-        //                     .push_arg(caller)
-        //                     .push_arg(collateral_amount),
-        //             )
-        //             .returns::<()>()
-        //             .invoke();
-        //     }
-
-        //     Ok(())
-        // }
+            Ok(())
+        }
     }
 }
