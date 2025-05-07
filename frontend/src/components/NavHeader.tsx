@@ -1,6 +1,7 @@
 import { Link } from "react-router-dom";
 import { useState } from "react";
 import { Menu, X } from "lucide-react";
+import ConnectWalletButton from "./ConnectWalletButton";
 
 const NavHeader = () => {
   const [menuOpen, setMenuOpen] = useState(false);
@@ -28,7 +29,9 @@ const NavHeader = () => {
       </Link>
 
       {/* Desktop Nav */}
-      <nav className="hidden md:flex space-x-6">{renderLinks()}</nav>
+      <nav className="hidden md:flex space-x-6 items-center">
+        {renderLinks()} <ConnectWalletButton />
+      </nav>
 
       {/* Mobile Menu Button */}
       <div className="flex items-center md:hidden space-x-4">
@@ -44,6 +47,7 @@ const NavHeader = () => {
       {menuOpen && (
         <nav className="absolute top-full left-0 right-0 bg-white shadow-md flex flex-col space-y-4 p-4 md:hidden z-50">
           {renderLinks(true)}
+          <ConnectWalletButton />
         </nav>
       )}
     </header>

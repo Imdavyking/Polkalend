@@ -1,17 +1,27 @@
 import { useState } from "react";
-import { CONTRACT_ADDRESS, tokens } from "../../utils/constants";
-import metadata from "../../assets/json/polkalend.json";
+import { tokens } from "../../utils/constants";
+import { toast } from "react-toastify";
+import { FaSpinner } from "react-icons/fa";
+import { createLoan, getLiquidity } from "../../services/blockchain.services";
 import { connectWallet } from "../../services/connect.wallet.services";
-
 export default function CreateLoan() {
   const [selectedToken, setSelectedToken] = useState(tokens[0]);
   const [amount, setAmount] = useState("");
   const [duration, setDuration] = useState("");
+  const [creatingLoan, setCreatingLoan] = useState(false);
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
 
-    if (!amount || !duration) return;
+    if (!amount) {
+      toast.error("Please enter a valid amount");
+      return;
+    }
+
+    if (!duration) {
+      toast.error("Please enter a valid duration");
+      return;
+    }
 
     onSubmit({
       token: selectedToken.address,
@@ -26,11 +36,31 @@ export default function CreateLoan() {
     duration: string;
   }) => {
     try {
-      connectWallet();
-      // Call your API or smart contract function here
-      console.log("Loan Offer Created:", data);
+      const { token, amount, duration } = data;
+      if (!token) {
+        toast.error("Please select a token");
+        return;
+      }
+      setCreatingLoan(true);
+
+      const account = await connectWallet();
+
+      await getLiquidity({
+        lender: account.address,
+        token,
+      });
+
+      return;
+      await createLoan({
+        token,
+        amount: Number(amount),
+        duration: BigInt(duration),
+      });
     } catch (error) {
       console.error("Error creating loan offer:", error);
+      toast.error("Failed to create loan offer. Please try again.");
+    } finally {
+      setCreatingLoan(false);
     }
   };
 
@@ -102,7 +132,11 @@ export default function CreateLoan() {
           type="submit"
           className="w-full bg-indigo-600 text-white py-2 px-4 rounded-md hover:bg-indigo-700"
         >
-          Submit Loan Offer
+          {creatingLoan ? (
+            <FaSpinner className="w-5 h-5 animate-spin" />
+          ) : (
+            "Submit Loan Offer"
+          )}
         </button>
       </form>
     </div>

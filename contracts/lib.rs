@@ -99,6 +99,11 @@ mod polkalend {
             }
         }
 
+        #[ink(message)]
+        pub fn get_owner(&self) -> H160 {
+            self.owner
+        }
+
         // allow lenders to deposit tokens into the liquidity pool
         #[ink(message, payable)]
         pub fn create_loan(&mut self, token: H160, amount: U256, duration: U256) -> Result<()> {

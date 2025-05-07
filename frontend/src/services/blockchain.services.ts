@@ -1,7 +1,7 @@
 import { withPolkadotSdkCompat } from "polkadot-api/polkadot-sdk-compat";
 import { getWsProvider } from "polkadot-api/ws-provider/web";
 import { createClient, FixedSizeBinary } from "polkadot-api";
-import { contracts, MultiAddress, westend } from "@polkadot-api/descriptors";
+import { contracts, westend } from "@polkadot-api/descriptors";
 import { getInkClient } from "polkadot-api/ink";
 import { CONTRACT_ADDRESS } from "../utils/constants";
 import { connectWallet } from "./connect.wallet.services";
@@ -42,24 +42,39 @@ export const getLiquidity = async ({
   }
 };
 
+function bigintToFixedSizeArray4(
+  value: bigint
+): [bigint, bigint, bigint, bigint] {
+  const mask = (1n << 64n) - 1n;
+
+  const part0 = value & mask;
+  const part1 = (value >> 64n) & mask;
+  const part2 = (value >> 128n) & mask;
+  const part3 = (value >> 192n) & mask;
+
+  return [part0, part1, part2, part3];
+}
+
 export const createLoan = async ({
   token,
   amount,
   duration,
 }: {
   token: string;
-  amount: bigint;
+  amount: number;
   duration: bigint;
 }) => {
   const createLoan = polkalend.message("create_loan");
+
   const data = createLoan.encode({
     token: FixedSizeBinary.fromHex(token),
-    amount,
-    duration,
+    amount: bigintToFixedSizeArray4(BigInt(amount)),
+    duration: bigintToFixedSizeArray4(duration),
   });
 
-  const value = amount * BigInt(10 ** WESTEND_ASSETHUB_DECIMALS);
+  const value = BigInt(Math.trunc(amount * 10 ** WESTEND_ASSETHUB_DECIMALS));
   const account = await connectWallet();
+
   const response = await typedApi.apis.ReviveApi.call(
     account.address,
     FixedSizeBinary.fromHex(CONTRACT_ADDRESS),
