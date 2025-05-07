@@ -1,6 +1,7 @@
 import { useState } from "react";
 import { CONTRACT_ADDRESS, tokens } from "../../utils/constants";
 import metadata from "../../assets/json/polkalend.json";
+import { connectWallet } from "../../services/connect.wallet.services";
 
 export default function CreateLoan() {
   const [selectedToken, setSelectedToken] = useState(tokens[0]);
@@ -25,6 +26,7 @@ export default function CreateLoan() {
     duration: string;
   }) => {
     try {
+      connectWallet();
       // Call your API or smart contract function here
       console.log("Loan Offer Created:", data);
     } catch (error) {
