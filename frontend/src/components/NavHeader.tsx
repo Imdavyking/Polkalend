@@ -6,7 +6,12 @@ import ConnectWalletButton from "./ConnectWalletButton";
 const NavHeader = () => {
   const [menuOpen, setMenuOpen] = useState(false);
 
-  const links = [{ to: "/create-loan", label: "Create Loan" }];
+  const links = [
+    { to: "/create-loan", label: "Create" },
+    { to: "/accept-loan", label: "Accept" },
+    { to: "/pay-loan", label: "Pay" },
+    { to: "/lock-collaterial", label: "Lock" },
+  ];
 
   const renderLinks = (isMobile = false) =>
     links.map(({ to, label }) => (

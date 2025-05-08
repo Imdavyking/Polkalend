@@ -1,6 +1,11 @@
 import { withPolkadotSdkCompat } from "polkadot-api/polkadot-sdk-compat";
 import { getWsProvider } from "polkadot-api/ws-provider/web";
-import { createClient, FixedSizeBinary, PolkadotClient } from "polkadot-api";
+import {
+  createClient,
+  FixedSizeBinary,
+  PolkadotClient,
+  TxFinalizedPayload,
+} from "polkadot-api";
 import { contracts, westend } from "@polkadot-api/descriptors";
 import { getInkClient } from "polkadot-api/ink";
 import { CONTRACT_ADDRESS } from "../utils/constants";
@@ -200,6 +205,7 @@ export const createLoan = async ({
     gas_limit: response.gas_required,
     storage_deposit_limit: response.storage_deposit.value,
   }).signAndSubmit(account.polkadotSigner);
+  rethrowContractError(result);
   console.log(
     "tx events",
     polkalend.event.filter(CONTRACT_ADDRESS, result.events)
@@ -231,18 +237,11 @@ export const acceptLoan = async ({
     amountToLoan = BigInt(amount * 10 ** ERC20_DECIMALS);
   }
 
-  const minimumCollateral = 15000; // TODO: get from contract
-  const collateralAmount = (amountToLoan * BigInt(minimumCollateral)) / 10000n;
-  console.log("Collateral amount", collateralAmount);
-
-  const collateralToken = ethers.ZeroAddress; // TODO: replace with dyanmic collaterial
   const acceptLoan = polkalend.message("accept_loan");
   const data = acceptLoan.encode({
     token: FixedSizeBinary.fromHex(token),
     amount: bigintToFixedSizeArray4(amountToLoan),
     lender: FixedSizeBinary.fromHex(lender),
-    collateral_amount: bigintToFixedSizeArray4(collateralAmount),
-    collateral_token: FixedSizeBinary.fromHex(collateralToken),
   });
 
   const response = await typedApi.apis.ReviveApi.call(
@@ -261,9 +260,127 @@ export const acceptLoan = async ({
     gas_limit: response.gas_required,
     storage_deposit_limit: response.storage_deposit.value,
   }).signAndSubmit(account.polkadotSigner);
+
+  rethrowContractError(result);
   console.log(
     "tx events",
     polkalend.event.filter(CONTRACT_ADDRESS, result.events)
   );
   return result;
+};
+
+export const payLoan = async ({
+  account,
+  lender,
+  token,
+  amount,
+}: {
+  lender: string;
+  token: string;
+  amount: number;
+  account: InjectedPolkadotAccount;
+}) => {
+  await instantiateUser(account);
+
+  let amountToPay = 0n;
+
+  if (token === ethers.ZeroAddress) {
+    amountToPay = BigInt(
+      Math.trunc(amount * 10 ** WESTEND_ASSETHUB_H160_DECIMALS)
+    );
+  } else {
+    const ERC20_DECIMALS = 18; // TODO: get from contract
+    amountToPay = BigInt(amount * 10 ** ERC20_DECIMALS);
+  }
+
+  const acceptLoan = polkalend.message("pay_loan");
+  const data = acceptLoan.encode({
+    token: FixedSizeBinary.fromHex(token),
+    amount: bigintToFixedSizeArray4(amountToPay),
+    lender: FixedSizeBinary.fromHex(lender),
+  });
+
+  const response = await typedApi.apis.ReviveApi.call(
+    account.address,
+    FixedSizeBinary.fromHex(CONTRACT_ADDRESS),
+    0n,
+    undefined,
+    undefined,
+    data
+  );
+
+  const result = await typedApi.tx.Revive.call({
+    value: 0n,
+    data,
+    dest: FixedSizeBinary.fromHex(CONTRACT_ADDRESS),
+    gas_limit: response.gas_required,
+    storage_deposit_limit: response.storage_deposit.value,
+  }).signAndSubmit(account.polkadotSigner);
+  rethrowContractError(result);
+  console.log(
+    "tx events",
+    polkalend.event.filter(CONTRACT_ADDRESS, result.events)
+  );
+  return result;
+};
+
+export const lockCollateral = async ({
+  account,
+  token,
+  amount,
+}: {
+  token: string;
+  amount: number;
+  account: InjectedPolkadotAccount;
+}) => {
+  await instantiateUser(account);
+
+  let amountToLock = 0n;
+
+  if (token === ethers.ZeroAddress) {
+    amountToLock = BigInt(
+      Math.trunc(amount * 10 ** WESTEND_ASSETHUB_H160_DECIMALS)
+    );
+  } else {
+    const ERC20_DECIMALS = 18; // TODO: get from contract
+    amountToLock = BigInt(amount * 10 ** ERC20_DECIMALS);
+  }
+
+  const acceptLoan = polkalend.message("lock_collateral");
+  const data = acceptLoan.encode({
+    collateral_token: FixedSizeBinary.fromHex(token),
+    collateral_amount: bigintToFixedSizeArray4(amountToLock),
+  });
+
+  const response = await typedApi.apis.ReviveApi.call(
+    account.address,
+    FixedSizeBinary.fromHex(CONTRACT_ADDRESS),
+    0n,
+    undefined,
+    undefined,
+    data
+  );
+
+  const result = await typedApi.tx.Revive.call({
+    value: 0n,
+    data,
+    dest: FixedSizeBinary.fromHex(CONTRACT_ADDRESS),
+    gas_limit: response.gas_required,
+    storage_deposit_limit: response.storage_deposit.value,
+  }).signAndSubmit(account.polkadotSigner);
+
+  rethrowContractError(result);
+  console.log(
+    "tx events",
+    polkalend.event.filter(CONTRACT_ADDRESS, result.events)
+  );
+  return result;
+};
+
+const rethrowContractError = (result: TxFinalizedPayload) => {
+  if (result.dispatchError) {
+    throw new Error(
+      `${result.dispatchError.type}.${result.dispatchError.value}`
+    );
+  }
 };

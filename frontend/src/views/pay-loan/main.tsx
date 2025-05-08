@@ -14,7 +14,7 @@ interface Token {
   image: string;
 }
 
-export default function AcceptLoanForm() {
+export default function PayLoan() {
   const lender = "0x95f5af38f10492ad29ac06086846b8c6f9509f51";
   const [amount, setAmount] = useState("");
   const [selectedLoanToken, setSelectedLoanToken] = useState<Token>(tokens[0]);
@@ -38,7 +38,7 @@ export default function AcceptLoanForm() {
     })();
   }, [account, selectedLoanToken]);
 
-  const handleAcceptLoan = async (e: React.FormEvent) => {
+  const handlePayLoan = async (e: React.FormEvent) => {
     e.preventDefault();
     setLoading(true);
     try {
@@ -68,8 +68,8 @@ export default function AcceptLoanForm() {
   return (
     <>
       <div className="max-w-md mx-auto bg-white shadow-lg rounded-xl p-6 space-y-4">
-        <h2 className="text-xl font-bold text-gray-800">Accept Loan</h2>
-        <form onSubmit={handleAcceptLoan} className="space-y-4">
+        <h2 className="text-xl font-bold text-gray-800">Pay Loan</h2>
+        <form onSubmit={handlePayLoan} className="space-y-4">
           <TextInput
             defaultValue={lender}
             onChange={() => {}}

@@ -5,8 +5,8 @@ import { createLoan, getUserBalance } from "../../services/blockchain.services";
 import { useWallet } from "../../context/WalletContext";
 
 import SubmitButton from "../../components/SubmitButton";
-import NumberInput from "../../components/durationinput";
-import TokenDropdown from "../../components/tokendropdown";
+import NumberInput from "../../components/DurationInput";
+import TokenDropdown from "../../components/TokenDropdown";
 export default function CreateLoan() {
   const [selectedToken, setSelectedToken] = useState(tokens[0]);
   const [amount, setAmount] = useState("");
@@ -72,8 +72,12 @@ export default function CreateLoan() {
       setAmount("");
       setDuration("");
     } catch (error) {
-      console.error("Error creating loan offer:", error);
-      toast.error("Failed to create loan offer. Please try again.");
+      console.error("Error:", error);
+      if (error instanceof Error) {
+        toast.error(error.message);
+      } else {
+        toast.error("An error occurred");
+      }
     } finally {
       setCreatingLoan(false);
     }

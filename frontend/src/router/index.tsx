@@ -3,6 +3,7 @@ import Home from "../views/home/main";
 import NotFound from "../views/not-found/main";
 import CreateLoan from "../views/create-loan/main";
 import AcceptLoanForm from "../views/accept-loan/main";
+import PayLoan from "../views/pay-loan/main";
 function Router() {
   const routes = [
     {
@@ -20,6 +21,10 @@ function Router() {
     {
       path: "/accept-loan",
       element: <AcceptLoanForm />,
+    },
+    {
+      path: "/pay-loan",
+      element: <PayLoan />,
     },
   ];
   return useRoutes(routes);
