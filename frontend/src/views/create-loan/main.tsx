@@ -55,12 +55,12 @@ export default function CreateLoan() {
         lender: account.address,
       });
 
-      await createLoan({
-        account: account,
-        token,
-        amount: Number(amount),
-        duration: BigInt(duration),
-      });
+      // await createLoan({
+      //   account: account,
+      //   token,
+      //   amount: Number(amount),
+      //   duration: BigInt(duration),
+      // });
     } catch (error) {
       console.error("Error creating loan offer:", error);
       toast.error("Failed to create loan offer. Please try again.");

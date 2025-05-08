@@ -7,6 +7,7 @@ import { CONTRACT_ADDRESS } from "../utils/constants";
 import {
   bigintToFixedSizeArray4,
   convertPublicKeyToSs58,
+  fixedSizeArray4ToBigint,
   ss58ToH160,
 } from "../utils/helpers";
 import { InjectedPolkadotAccount } from "polkadot-api/pjs-signer";
@@ -102,7 +103,10 @@ export const getLiquidity = async ({
   if (response.result.success) {
     const responseMessage = getLiquidity.decode(response.result.value);
     console.log("Result response", responseMessage);
-    return responseMessage;
+    const liquidity = responseMessage.value;
+    return fixedSizeArray4ToBigint(
+      liquidity as unknown as [bigint, bigint, bigint, bigint]
+    );
   }
 };
 
