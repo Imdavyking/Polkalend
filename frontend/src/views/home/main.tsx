@@ -3,6 +3,7 @@
 import { Canvas } from "@react-three/fiber";
 import { OrbitControls } from "@react-three/drei";
 import { motion } from "framer-motion";
+import { Link } from "react-router-dom";
 
 const ThreeBackground = () => (
   <Canvas className="absolute inset-0 z-0">
@@ -93,9 +94,12 @@ export default function Home() {
           transition={{ duration: 0.5 }}
           viewport={{ once: true }}
         >
-          <button className="px-8 py-4 bg-gradient-to-r from-purple-600 to-indigo-600 rounded-full text-xl font-semibold hover:scale-105 transition-transform shadow-lg">
+          <Link
+            to="/create-loan"
+            className="px-8 py-4 bg-gradient-to-r from-purple-600 to-indigo-600 rounded-full text-xl font-semibold hover:scale-105 transition-transform shadow-lg"
+          >
             Launch App
-          </button>
+          </Link>
         </motion.div>
 
         <footer className="text-center text-gray-500 text-sm pb-8">

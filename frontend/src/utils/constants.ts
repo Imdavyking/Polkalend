@@ -1,4 +1,4 @@
-import usdc from "../assets/images/usdc.png";
+// import usdc from "../assets/images/usdc.png";
 import polkadot from "../assets/images/polkadot.png";
 import { ethers } from "ethers";
 export const tokens = [
