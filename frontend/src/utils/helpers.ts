@@ -3,9 +3,7 @@ import { decodeAddress } from "@polkadot/util-crypto";
 import { Binary } from "polkadot-api";
 import { ss58Address } from "@polkadot-labs/hdkd-helpers";
 import { ethers } from "ethers";
-
 import { keccak256 } from "ethers";
-import { InjectedPolkadotAccount } from "polkadot-api/pjs-signer";
 const SS58_PREFIX = 42;
 
 export function bigintToFixedSizeArray4(
@@ -36,12 +34,6 @@ export const isHex = (str: string) => {
   return typeof str === "string" && /^0x[0-9a-fA-F]+$/.test(str);
 };
 
-export function accountToHex(address: string, isPrefixed = true) {
-  if (isHex(address)) return address;
-  const hex = FixedSizeBinary.fromAccountId32<32>(address).asHex();
-  return isPrefixed ? hex : hex.slice(2);
-}
-
 export function ss58ToH160(accountSS58Address: string): Binary {
   // Decode the SS58 address to a Uint8Array public key
   const publicKey = decodeAddress(accountSS58Address);
@@ -58,4 +50,3 @@ export function ss58ToH160(accountSS58Address: string): Binary {
 export function convertPublicKeyToSs58(publickey: Uint8Array) {
   return ss58Address(publickey, SS58_PREFIX);
 }
-

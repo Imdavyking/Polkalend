@@ -5,7 +5,6 @@ import { contracts, westend } from "@polkadot-api/descriptors";
 import { getInkClient } from "polkadot-api/ink";
 import { CONTRACT_ADDRESS } from "../utils/constants";
 import {
-  accountToHex,
   bigintToFixedSizeArray4,
   convertPublicKeyToSs58,
   ss58ToH160,
@@ -88,7 +87,7 @@ export const getLiquidity = async ({
 
   const getLiquidity = polkalend.message("get_liquidity");
   const data = getLiquidity.encode({
-    lender: FixedSizeBinary.fromHex(accountToHex(lender)),
+    lender: FixedSizeBinary.fromHex(ss58ToH160(lender).asHex()),
     token: FixedSizeBinary.fromHex(token),
   });
 
