@@ -67,6 +67,10 @@ export default function CreateLoan() {
         amount: Number(amount),
         duration: BigInt(duration),
       });
+
+      toast.success("Loan offer created successfully!");
+      setAmount("");
+      setDuration("");
     } catch (error) {
       console.error("Error creating loan offer:", error);
       toast.error("Failed to create loan offer. Please try again.");
