@@ -2,20 +2,24 @@
 import { createContext, useContext, useState, useEffect } from "react";
 import {
   connectWallet,
+  disconnectWallet,
   hasConnected,
 } from "../services/connect.wallet.services";
 import { InjectedPolkadotAccount } from "polkadot-api/pjs-signer";
+import { CONNECT_WALLET_KEY_STORAGE } from "../utils/constants";
 
 interface WalletContextType {
   account: InjectedPolkadotAccount | null;
   isConnecting: boolean;
   connect: () => Promise<void>;
+  disconnect: () => void;
 }
 
 const WalletContext = createContext<WalletContextType>({
   account: null,
   isConnecting: false,
   connect: async () => {},
+  disconnect: () => {},
 });
 
 export const WalletProvider = ({ children }: { children: React.ReactNode }) => {
@@ -43,8 +47,16 @@ export const WalletProvider = ({ children }: { children: React.ReactNode }) => {
     }
   };
 
+  const disconnect = () => {
+    setAccount(null);
+    localStorage.removeItem(CONNECT_WALLET_KEY_STORAGE);
+    disconnectWallet();
+  };
+
   return (
-    <WalletContext.Provider value={{ account, isConnecting, connect }}>
+    <WalletContext.Provider
+      value={{ account, isConnecting, connect, disconnect }}
+    >
       {children}
     </WalletContext.Provider>
   );

@@ -94,8 +94,6 @@ export const getUserBalance = async (
   account: InjectedPolkadotAccount,
   token: string
 ): Promise<number> => {
-  await instantiateUser(account);
-
   let userBalance = 0;
 
   if (token === ethers.ZeroAddress) {
