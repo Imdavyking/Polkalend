@@ -17,7 +17,7 @@ const NumberInput: React.FC<NumberInputProps> = ({
     <label className="block text-sm font-medium text-gray-700">{label}</label>
     <input
       type="number"
-      min="1"
+      min={1 / 1e18}
       step={1 / 1e18}
       value={defaultValue}
       onChange={(e) => onChange(e.target.value)}
