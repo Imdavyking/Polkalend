@@ -164,7 +164,7 @@ export const createLoan = async ({
   let value = 0n;
   let amountWithDecimals = 0n;
   if (token === ethers.ZeroAddress) {
-    value = BigInt(Math.trunc(amount * 10 ** WESTEND_ASSETHUB_H160_DECIMALS));
+    value = BigInt(Math.trunc(amount * 10 ** WESTEND_ASSETHUB_SS58_DECIMALS));
     amountWithDecimals = BigInt(
       Math.trunc(amount * 10 ** WESTEND_ASSETHUB_H160_DECIMALS)
     );
