@@ -442,4 +442,96 @@ mod polkalend {
             Ok(())
         }
     }
+    #[cfg(test)]
+    fn set_caller(sender: H160) {
+        ink::env::test::set_caller(sender);
+    }
+
+    #[cfg(test)]
+    mod tests {
+        use super::*;
+
+        #[ink::test]
+        fn create_loan_works() {
+            let accounts = ink::env::test::default_accounts();
+            set_caller(accounts.alice);
+            let mut polkalend = LendingPlatform::new();
+            assert_eq!(
+                polkalend.create_loan(H160::zero(), U256::from(10), U256::from(10)),
+                Ok(())
+            );
+        }
+
+        #[ink::test]
+        fn create_loan_fails_with_zero_amount() {
+            let accounts = ink::env::test::default_accounts();
+            set_caller(accounts.alice);
+            let mut polkalend = LendingPlatform::new();
+            assert_eq!(
+                polkalend.create_loan(H160::zero(), U256::zero(), U256::from(10)),
+                Err(Error::ZeroAmount)
+            );
+        }
+
+        #[ink::test]
+        fn create_loan_fails_with_zero_duration() {
+            let accounts = ink::env::test::default_accounts();
+            set_caller(accounts.alice);
+            let mut polkalend = LendingPlatform::new();
+            assert_eq!(
+                polkalend.create_loan(H160::zero(), U256::from(10), U256::zero()),
+                Err(Error::ZeroDuration)
+            );
+        }
+
+        #[ink::test]
+        fn create_loan_fails_with_insufficient_liquidity() {
+            let accounts = ink::env::test::default_accounts();
+            set_caller(accounts.alice);
+            let mut polkalend = LendingPlatform::new();
+            assert_eq!(
+                polkalend.create_loan(H160::zero(), U256::from(10), U256::from(10)),
+                Err(Error::InsufficientLiquidity)
+            );
+        }
+
+        #[ink::test]
+        fn lock_collateral_works() {
+            let accounts = ink::env::test::default_accounts();
+            set_caller(accounts.alice);
+            let mut polkalend = LendingPlatform::new();
+            assert_eq!(
+                polkalend.lock_collateral(H160::zero(), U256::from(10)),
+                Ok(())
+            );
+        }
+
+        #[ink::test]
+        fn lock_collateral_fails_with_zero_amount() {
+            let accounts = ink::env::test::default_accounts();
+            set_caller(accounts.alice);
+            let mut polkalend = LendingPlatform::new();
+            assert_eq!(
+                polkalend.lock_collateral(H160::zero(), U256::zero()),
+                Err(Error::ZeroAmount)
+            );
+        }
+
+        #[ink::test]
+        fn accept_loan_works() {
+            let accounts = ink::env::test::default_accounts();
+            set_caller(accounts.alice);
+            let mut polkalend = LendingPlatform::new();
+            polkalend
+                .create_loan(H160::zero(), U256::from(10), U256::from(10))
+                .unwrap();
+            polkalend
+                .lock_collateral(H160::zero(), U256::zero())
+                .unwrap();
+            assert_eq!(
+                polkalend.accept_loan(accounts.bob, H160::zero(), U256::from(5)),
+                Ok(())
+            );
+        }
+    }
 }

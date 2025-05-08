@@ -450,6 +450,11 @@ export const lockCollateral = async ({
 const rethrowContractError = (result: TxFinalizedPayload) => {
   if (result.dispatchError) {
     // {"display":{"type":"Module","value":{"type":"Revive","value":{"type":"TransferFailed"}}}}
+    // {"display":{"type":"Module","value":{"type":"Revive","value":{"type":"ContractReverted"}}}}
+
+    //   if debt < amount {
+    //     return Err(Error::RepaymentExceedsDebt);
+    // }
     console.log(JSON.stringify({ display: result.dispatchError }));
     throw new Error(`${result.dispatchError.type}`);
   }
