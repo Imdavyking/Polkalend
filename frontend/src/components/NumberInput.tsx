@@ -5,12 +5,14 @@ interface NumberInputProps {
   label?: string;
   placeholder?: string;
   onChange: (value: string) => void;
+  disabled?: boolean;
 }
 
 const NumberInput: React.FC<NumberInputProps> = ({
   defaultValue,
   label = "Duration (seconds)",
   placeholder = "e.g. 86400 for 1 day",
+  disabled = false,
   onChange,
 }) => (
   <div>
@@ -23,6 +25,7 @@ const NumberInput: React.FC<NumberInputProps> = ({
       onChange={(e) => onChange(e.target.value)}
       className="w-full p-2 border rounded-md focus:ring focus:ring-indigo-500"
       placeholder={placeholder}
+      disabled={disabled}
     />
   </div>
 );

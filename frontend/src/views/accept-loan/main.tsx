@@ -5,7 +5,11 @@ import TextInput from "../../components/TextInput";
 import NumberInput from "../../components/NumberInput";
 import SubmitButton from "../../components/SubmitButton";
 import { useWallet } from "../../context/WalletContext";
-import { acceptLoan, getLiquidity } from "../../services/blockchain.services";
+import {
+  acceptLoan,
+  getCollaterial,
+  getLiquidity,
+} from "../../services/blockchain.services";
 import { toast } from "react-toastify";
 import { ss58ToH160 } from "../../utils/helpers";
 
@@ -20,12 +24,30 @@ export default function AcceptLoanForm() {
   const [selectedLoanToken, setSelectedLoanToken] = useState<Token>(tokens[0]);
   const [loading, setLoading] = useState(false);
   const [balance, setBalance] = useState("");
+  const [collateral, setCollaterial] = useState("");
   const { account } = useWallet();
 
   const [lender, setLender] = useState("");
 
   useEffect(() => {
-    (async () => {
+    const fetchCollaterial = async () => {
+      if (!account) return;
+      const collaterial = await getCollaterial({
+        borrower: account.address,
+        token: selectedLoanToken.address,
+        account,
+      });
+      if (typeof collaterial === "undefined") {
+        console.log("collateral is undefined");
+        return;
+      }
+      setCollaterial(collaterial.toString());
+    };
+    fetchCollaterial();
+  }, [account]);
+
+  useEffect(() => {
+    const fetchDetails = async () => {
       if (!account) return;
       setLender(ss58ToH160(account.address).asHex());
       const balance = await getLiquidity({
@@ -35,10 +57,12 @@ export default function AcceptLoanForm() {
       });
 
       if (typeof balance === "undefined") {
+        console.log("balance is undefined");
         return;
       }
       setBalance(balance.toString());
-    })();
+    };
+    fetchDetails();
   }, [account, selectedLoanToken]);
 
   const handleAcceptLoan = async (e: React.FormEvent) => {
@@ -92,6 +116,13 @@ export default function AcceptLoanForm() {
             placeholder="1000"
             defaultValue={amount}
             onChange={(value) => setAmount(value)}
+          />
+          <NumberInput
+            label="Collaterial"
+            placeholder="1000"
+            defaultValue={collateral}
+            disabled
+            onChange={(_) => {}}
           />
           <SubmitButton isSubmitting={loading} />
         </form>

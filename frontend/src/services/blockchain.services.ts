@@ -148,6 +148,48 @@ export const getLiquidity = async ({
   }
 };
 
+export const getCollaterial = async ({
+  borrower,
+  token,
+  account,
+}: {
+  borrower: string;
+  token: string;
+  account: InjectedPolkadotAccount;
+}) => {
+  console.log({ borrower, token, account });
+  await instantiateUser(account);
+
+  const getLiquidity = polkalend.message("get_collateral");
+  const data = getLiquidity.encode({
+    borrower: FixedSizeBinary.fromHex(borrower),
+    token: FixedSizeBinary.fromHex(token),
+  });
+
+  const response = await typedApi.apis.ReviveApi.call(
+    account.address,
+    FixedSizeBinary.fromHex(CONTRACT_ADDRESS),
+    0n,
+    undefined,
+    undefined,
+    data
+  );
+  if (response.result.success) {
+    const responseMessage = getLiquidity.decode(response.result.value);
+    console.log("Result response", responseMessage);
+    const liquidity = responseMessage.value;
+
+    return (
+      Number(
+        fixedSizeArray4ToBigint(
+          liquidity as unknown as [bigint, bigint, bigint, bigint]
+        )
+      ) /
+      10 ** WESTEND_ASSETHUB_H160_DECIMALS
+    );
+  }
+};
+
 export const createLoan = async ({
   account,
   token,
