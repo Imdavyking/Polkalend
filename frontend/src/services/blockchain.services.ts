@@ -273,14 +273,16 @@ export const payLoan = async ({
   await instantiateUser(account);
 
   let amountToPay = 0n;
+  let value = 0n;
 
   if (token === ethers.ZeroAddress) {
+    value = BigInt(Math.trunc(amount * 10 ** WESTEND_ASSETHUB_SS58_DECIMALS));
     amountToPay = BigInt(
       Math.trunc(amount * 10 ** WESTEND_ASSETHUB_H160_DECIMALS)
     );
   } else {
     const ERC20_DECIMALS = 18; // TODO: get from contract
-    amountToPay = BigInt(amount * 10 ** ERC20_DECIMALS);
+    amountToPay = BigInt(Math.trunc(amount * 10 ** ERC20_DECIMALS));
   }
 
   const acceptLoan = polkalend.message("pay_loan");
@@ -293,14 +295,14 @@ export const payLoan = async ({
   const response = await typedApi.apis.ReviveApi.call(
     account.address,
     FixedSizeBinary.fromHex(CONTRACT_ADDRESS),
-    0n,
+    value,
     undefined,
     undefined,
     data
   );
 
   const result = await typedApi.tx.Revive.call({
-    value: 0n,
+    value,
     data,
     dest: FixedSizeBinary.fromHex(CONTRACT_ADDRESS),
     gas_limit: response.gas_required,
@@ -327,13 +329,16 @@ export const lockCollateral = async ({
 
   let amountToLock = 0n;
 
+  let value = 0n;
+
   if (token === ethers.ZeroAddress) {
+    value = BigInt(Math.trunc(amount * 10 ** WESTEND_ASSETHUB_SS58_DECIMALS));
     amountToLock = BigInt(
       Math.trunc(amount * 10 ** WESTEND_ASSETHUB_H160_DECIMALS)
     );
   } else {
     const ERC20_DECIMALS = 18; // TODO: get from contract
-    amountToLock = BigInt(amount * 10 ** ERC20_DECIMALS);
+    amountToLock = BigInt(Math.trunc(amount * 10 ** ERC20_DECIMALS));
   }
 
   const acceptLoan = polkalend.message("lock_collateral");
@@ -345,14 +350,14 @@ export const lockCollateral = async ({
   const response = await typedApi.apis.ReviveApi.call(
     account.address,
     FixedSizeBinary.fromHex(CONTRACT_ADDRESS),
-    0n,
+    value,
     undefined,
     undefined,
     data
   );
 
   const result = await typedApi.tx.Revive.call({
-    value: 0n,
+    value,
     data,
     dest: FixedSizeBinary.fromHex(CONTRACT_ADDRESS),
     gas_limit: response.gas_required,

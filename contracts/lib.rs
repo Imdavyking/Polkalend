@@ -264,7 +264,7 @@ mod polkalend {
             Ok(())
         }
 
-        #[ink(message)]
+        #[ink(message, payable)]
         pub fn pay_loan(&mut self, token: H160, lender: H160, amount: U256) -> Result<()> {
             let borrower = self.env().caller();
             let debt = self.debt.get((borrower, token)).unwrap_or_default();
