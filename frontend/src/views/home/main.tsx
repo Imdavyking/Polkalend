@@ -1,7 +1,6 @@
 // pages/index.tsx or Home.tsx
 
 import { Canvas } from "@react-three/fiber";
-import { Suspense } from "react";
 import { OrbitControls } from "@react-three/drei";
 import { motion } from "framer-motion";
 
