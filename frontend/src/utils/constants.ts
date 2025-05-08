@@ -7,11 +7,11 @@ export const tokens = [
     address: ethers.ZeroAddress,
     image: polkadot,
   },
-  {
-    name: "USDC",
-    address: "0x2222222222222222222222222222222222222222",
-    image: usdc,
-  },
+  // {
+  //   name: "USDC",
+  //   address: "0x2222222222222222222222222222222222222222",
+  //   image: usdc,
+  // },
 ];
 export const CONTRACT_ADDRESS = import.meta.env.VITE_CONTRACT_ADDRESS;
 export const WS_URL = import.meta.env.VITE_WS_URL;
