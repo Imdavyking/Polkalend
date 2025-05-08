@@ -102,14 +102,14 @@ export default function PayLoan() {
             disabled={true}
           />
           <TokenDropdown
-            label="Loan Token"
+            label="Repayment Token"
             tokens={tokens}
             selectedToken={selectedLoanToken}
             setSelectedToken={setSelectedLoanToken}
             balance={balance}
           />
           <NumberInput
-            label="Loan Amount"
+            label="Repayment Amount"
             placeholder="1000"
             defaultValue={amount}
             onChange={(value) => setAmount(value)}
