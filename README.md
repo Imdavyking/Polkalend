@@ -175,8 +175,6 @@ https://faucet.polkadot.io/
 
 ---
 
-Would you like me to include instructions for running a local node with `ink!` for debugging?
-
 ## **License**
 
 This project is licensed under the MIT License - see the [LICENSE](LICENSE) file for details.
