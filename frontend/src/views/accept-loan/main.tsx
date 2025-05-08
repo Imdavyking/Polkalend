@@ -7,6 +7,7 @@ import SubmitButton from "../../components/SubmitButton";
 import { useWallet } from "../../context/WalletContext";
 import { acceptLoan, getLiquidity } from "../../services/blockchain.services";
 import { toast } from "react-toastify";
+import { ss58ToH160 } from "../../utils/helpers";
 
 interface Token {
   name: string;
@@ -15,16 +16,18 @@ interface Token {
 }
 
 export default function AcceptLoanForm() {
-  const lender = "0x95f5af38f10492ad29ac06086846b8c6f9509f51";
   const [amount, setAmount] = useState("");
   const [selectedLoanToken, setSelectedLoanToken] = useState<Token>(tokens[0]);
   const [loading, setLoading] = useState(false);
   const [balance, setBalance] = useState("");
   const { account } = useWallet();
 
+  const [lender, setLender] = useState("");
+
   useEffect(() => {
     (async () => {
       if (!account) return;
+      setLender(ss58ToH160(account.address).asHex());
       const balance = await getLiquidity({
         lender,
         token: selectedLoanToken.address,
