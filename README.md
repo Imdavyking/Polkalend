@@ -85,9 +85,6 @@ We welcome contributions! If you’d like to contribute to this project, please 
      `bash
 substrate-contracts-node --dev --tmp
 `
-     Thanks for the clarification.
-
-Since there's **only Option B** available—i.e., you must call `mapAccount` through the **runtime extrinsic**, here's the corrected and specific version of your instructions:
 
 ---
 
