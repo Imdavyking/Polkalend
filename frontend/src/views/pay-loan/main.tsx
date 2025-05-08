@@ -6,9 +6,9 @@ import NumberInput from "../../components/NumberInput";
 import SubmitButton from "../../components/SubmitButton";
 import { useWallet } from "../../context/WalletContext";
 import {
-  acceptLoan,
   getDebt,
   getUserBalance,
+  payLoan,
 } from "../../services/blockchain.services";
 import { toast } from "react-toastify";
 import { ss58ToH160 } from "../../utils/helpers";
@@ -60,7 +60,7 @@ export default function PayLoan() {
       }
       setBalance(balance.toString());
     })();
-  }, [account, selectedLoanToken, lender]);
+  }, [account, selectedLoanToken, lender, loading]);
 
   const handlePayLoan = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -70,7 +70,7 @@ export default function PayLoan() {
         toast.error("Please connect your wallet");
         return;
       }
-      await acceptLoan({
+      await payLoan({
         lender,
         token: selectedLoanToken.address,
         amount: +amount,

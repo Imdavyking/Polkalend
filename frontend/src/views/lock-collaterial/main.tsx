@@ -33,7 +33,7 @@ export default function LockCollaterial() {
       }
       setBalance(balance.toString());
     })();
-  }, [account, selectedToken]);
+  }, [account, selectedToken, loading]);
 
   const handlePayLoan = async (e: React.FormEvent) => {
     e.preventDefault();

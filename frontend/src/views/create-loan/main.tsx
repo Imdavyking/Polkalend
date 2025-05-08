@@ -21,7 +21,7 @@ export default function CreateLoan() {
       const balance = await getUserBalance(account, selectedToken.address);
       setBalance(balance.toString());
     })();
-  }, [account, selectedToken]);
+  }, [account, selectedToken, creatingLoan]);
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
