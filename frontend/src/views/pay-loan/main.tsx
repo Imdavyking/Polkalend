@@ -5,7 +5,7 @@ import TextInput from "../../components/TextInput";
 import NumberInput from "../../components/DurationInput";
 import SubmitButton from "../../components/SubmitButton";
 import { useWallet } from "../../context/WalletContext";
-import { acceptLoan, getLiquidity } from "../../services/blockchain.services";
+import { acceptLoan, getUserBalance } from "../../services/blockchain.services";
 import { toast } from "react-toastify";
 
 interface Token {
@@ -25,11 +25,7 @@ export default function PayLoan() {
   useEffect(() => {
     (async () => {
       if (!account) return;
-      const balance = await getLiquidity({
-        lender,
-        token: selectedLoanToken.address,
-        account,
-      });
+      const balance = await getUserBalance(account, selectedLoanToken.address);
 
       if (typeof balance === "undefined") {
         return;
