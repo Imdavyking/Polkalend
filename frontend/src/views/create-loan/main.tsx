@@ -1,8 +1,8 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { tokens } from "../../utils/constants";
 import { toast } from "react-toastify";
 import { FaSpinner } from "react-icons/fa";
-import { createLoan, getLiquidity } from "../../services/blockchain.services";
+import { createLoan, getUserBalance } from "../../services/blockchain.services";
 import { useWallet } from "../../context/WalletContext";
 export default function CreateLoan() {
   const [selectedToken, setSelectedToken] = useState(tokens[0]);
@@ -10,6 +10,18 @@ export default function CreateLoan() {
   const [duration, setDuration] = useState("");
   const [creatingLoan, setCreatingLoan] = useState(false);
   const { account } = useWallet();
+  const [balance, setBalance] = useState("");
+
+  useEffect(() => {
+    (async () => {
+      console.log({ account });
+      if (!account) {
+        return;
+      }
+      const balance = await getUserBalance(account, selectedToken.address);
+      setBalance(balance.toString());
+    })();
+  }, [creatingLoan, account, selectedToken]);
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
@@ -49,18 +61,12 @@ export default function CreateLoan() {
         return;
       }
 
-      await getLiquidity({
+      await createLoan({
         account: account,
         token,
-        lender: account.address,
+        amount: Number(amount),
+        duration: BigInt(duration),
       });
-
-      // await createLoan({
-      //   account: account,
-      //   token,
-      //   amount: Number(amount),
-      //   duration: BigInt(duration),
-      // });
     } catch (error) {
       console.error("Error creating loan offer:", error);
       toast.error("Failed to create loan offer. Please try again.");
@@ -95,6 +101,7 @@ export default function CreateLoan() {
           </select>
 
           <div className="flex items-center mt-2 gap-2">
+            {balance}
             <img
               src={selectedToken.image}
               alt={selectedToken.name}

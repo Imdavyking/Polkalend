@@ -12,6 +12,7 @@ import {
 } from "../utils/helpers";
 import { InjectedPolkadotAccount } from "polkadot-api/pjs-signer";
 import { Binary } from "polkadot-api";
+import { ethers } from "ethers";
 
 const client = createClient(
   withPolkadotSdkCompat(
@@ -21,7 +22,8 @@ const client = createClient(
 
 const typedApi = client.getTypedApi(westend);
 const polkalend = getInkClient(contracts.polkalend);
-const WESTEND_ASSETHUB_DECIMALS = 18;
+const WESTEND_ASSETHUB_H160_DECIMALS = 18;
+const WESTEND_ASSETHUB_SS58_DECIMALS = 12;
 
 const getContractCode = async () => {
   const url = "/polkalend.polkavm";
@@ -73,6 +75,26 @@ export const instantiateUser = async (account: InjectedPolkadotAccount) => {
   } catch (error) {
     console.error("Error instantiating user:", error);
   }
+};
+
+export const getUserBalance = async (
+  account: InjectedPolkadotAccount,
+  token: string
+): Promise<number> => {
+  await instantiateUser(account);
+
+  let userBalance = 0;
+
+  if (token === ethers.ZeroAddress) {
+    const userAccount = await typedApi.query.System.Account.getValue(
+      account.address
+    );
+    const balance = userAccount.data.free;
+    console.log(Number(balance) / 10 ** WESTEND_ASSETHUB_SS58_DECIMALS);
+    userBalance = Number(balance) / 10 ** WESTEND_ASSETHUB_SS58_DECIMALS;
+  }
+
+  return userBalance;
 };
 
 export const getLiquidity = async ({
@@ -130,7 +152,9 @@ export const createLoan = async ({
     duration: bigintToFixedSizeArray4(duration),
   });
 
-  const value = BigInt(Math.trunc(amount * 10 ** WESTEND_ASSETHUB_DECIMALS));
+  const value = BigInt(
+    Math.trunc(amount * 10 ** WESTEND_ASSETHUB_H160_DECIMALS)
+  );
 
   const response = await typedApi.apis.ReviveApi.call(
     account.address,

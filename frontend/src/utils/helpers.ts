@@ -1,4 +1,3 @@
-import { FixedSizeBinary } from "polkadot-api";
 import { decodeAddress } from "@polkadot/util-crypto";
 import { Binary } from "polkadot-api";
 import { ss58Address } from "@polkadot-labs/hdkd-helpers";

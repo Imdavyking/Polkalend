@@ -1,9 +1,10 @@
 import usdc from "../assets/images/usdc.png";
 import polkadot from "../assets/images/polkadot.png";
+import { ethers } from "ethers";
 export const tokens = [
   {
     name: "DOT",
-    address: "0x0000000000000000000000000000000000000000", // native
+    address: ethers.ZeroAddress, // native
     image: polkadot,
   },
   {
