@@ -235,13 +235,13 @@ export const acceptLoan = async ({
   const collateralAmount = (amountToLoan * BigInt(minimumCollateral)) / 10000n;
   console.log("Collateral amount", collateralAmount);
 
-  const collateralToken = ethers.ZeroAddress;
+  const collateralToken = ethers.ZeroAddress; // TODO: replace with dyanmic collaterial
   const acceptLoan = polkalend.message("accept_loan");
   const data = acceptLoan.encode({
     token: FixedSizeBinary.fromHex(token),
     amount: bigintToFixedSizeArray4(amountToLoan),
     lender: FixedSizeBinary.fromHex(lender),
-    collateral_amount: bigintToFixedSizeArray4(BigInt(collateralAmount)),
+    collateral_amount: bigintToFixedSizeArray4(collateralAmount),
     collateral_token: FixedSizeBinary.fromHex(collateralToken),
   });
 

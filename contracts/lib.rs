@@ -161,17 +161,53 @@ mod polkalend {
         }
 
         #[ink(message)]
-        pub fn accept_loan(
+        pub fn lock_collateral(
             &mut self,
-            lender: H160,
-            token: H160,
-            amount: U256,
             collateral_token: H160,
             collateral_amount: U256,
         ) -> Result<()> {
             let borrower = self.env().caller();
 
-            if amount.is_zero() || collateral_amount.is_zero() {
+            if collateral_amount.is_zero() {
+                return Err(Error::ZeroAmount);
+            }
+
+            let current_collateral = self
+                .collateral
+                .get((borrower, collateral_token))
+                .unwrap_or_default();
+            let updated = current_collateral.checked_add(collateral_amount).unwrap();
+
+            self.collateral
+                .insert((borrower, collateral_token), &updated);
+
+            if collateral_token == H160::zero() {
+                if self.env().transferred_value() != collateral_amount {
+                    return Err(Error::InsufficientTransferredValue);
+                }
+            } else {
+                if self.env().transferred_value() != U256::zero() {
+                    return Err(Error::YouShouldNotSendDot);
+                }
+                build_call::<Environment>()
+                    .call(collateral_token)
+                    .exec_input(
+                        ExecutionInput::new(Selector::new(ink::selector_bytes!("transfer_from")))
+                            .push_arg(borrower)
+                            .push_arg(address())
+                            .push_arg(collateral_amount),
+                    )
+                    .returns::<()>()
+                    .invoke();
+            }
+            Ok(())
+        }
+
+        #[ink(message)]
+        pub fn accept_loan(&mut self, lender: H160, token: H160, amount: U256) -> Result<()> {
+            let borrower = self.env().caller();
+
+            if amount.is_zero() {
                 return Err(Error::ZeroAmount);
             }
 
@@ -186,20 +222,24 @@ mod polkalend {
                 .unwrap()
                 .checked_div(U256::from(10_000))
                 .unwrap();
-            if collateral_amount < required_collateral {
-                return Err(Error::ZeroDuration); // Using ZeroDuration here as a placeholder
-            }
 
-            // Lock collateral
-            self.collateral
-                .insert((borrower, collateral_token), &collateral_amount);
+            //TODO: track the collateral for the borrower
+            //TODO: Check if borrower has enough collateral
+
+            let current_collateral = self.collateral.get((borrower, token)).unwrap_or_default();
+
+            if current_collateral < required_collateral {
+                return Err(Error::CollateralTooLow);
+            }
 
             // Reduce liquidity
             self.liquidity_pool
                 .insert((lender, token), &(liquidity.checked_sub(amount).unwrap()));
 
             // Track loan
-            self.debt.insert((borrower, token), &amount);
+            let previous_debt = self.debt.get((borrower, token)).unwrap_or_default();
+            let new_debt = previous_debt.checked_add(amount).unwrap();
+            self.debt.insert((borrower, token), &new_debt);
             let mut loans = self.active_loans.get(borrower).unwrap_or_default();
             loans.push((lender, token, amount));
             self.active_loans.insert(borrower, &loans);
