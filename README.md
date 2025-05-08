@@ -138,9 +138,6 @@ https://faucet.polkadot.io/
 
    - Open [UI ink](https://inkv6alpha.netlify.app/).
 
-   <!-- problems I face, websocket couldn't work on brave,switched to chrome, if i emit event in ink v6! get `CodeRejected
-The contract failed to compile or is missing the correct entry points.A more detailed error can be found on the node console if debug messages are enabledby supplying -lruntime::revive=debug``-->
-
 2. Upload and Deploy the Contract:
    - Navigate to the "Contracts" tab and click on "Deploy Contract."
    - Upload the `.contract` file that was generated during the build process.
@@ -157,6 +154,24 @@ The contract failed to compile or is missing the correct entry points.A more det
   ```bash
   cargo test
   ```
+
+### Known Issues & Troubleshooting
+
+- **WebSocket Compatibility (Brave Browser):**
+  WebSocket connections do not function reliably on Brave due to its aggressive security and privacy settings. Switching to Chrome or another browser resolves the issue.
+
+- **Contract Event Emission with `ink!` v6:**
+  Emitting events in `ink!` v6 can lead to the following error:
+
+  ```
+  CodeRejected: The contract failed to compile or is missing the correct entry points.
+  A more detailed error can be found on the node console if debug messages are enabled by supplying -lruntime::revive=debug
+  ```
+
+  This typically occurs when the contract does not meet the runtime’s expectations for event handling or entry point structure. As a result:
+
+  - Event indexing with tools like **SubQuery** becomes unreliable.
+  - GraphQL-based querying of contract events is not currently feasible.
 
 ## **License**
 

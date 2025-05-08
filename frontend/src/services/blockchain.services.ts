@@ -77,9 +77,7 @@ export const instantiateUser = async (account: InjectedPolkadotAccount) => {
     const mapped = await typedApi.query.Revive.OriginalAccount.getValue(
       h160Account
     );
-    console.log("Mapped account", mapped);
     if (mapped) {
-      console.log("Already mapped");
       return;
     }
     await typedApi.tx.Revive.map_account().signAndSubmit(
@@ -134,9 +132,7 @@ export const getLiquidity = async ({
   );
   if (response.result.success) {
     const responseMessage = getLiquidity.decode(response.result.value);
-    console.log("Result response", responseMessage);
     const liquidity = responseMessage.value;
-
     return (
       Number(
         fixedSizeArray4ToBigint(
@@ -157,11 +153,10 @@ export const getCollaterial = async ({
   token: string;
   account: InjectedPolkadotAccount;
 }) => {
-  console.log({ borrower, token, account });
   await instantiateUser(account);
 
-  const getLiquidity = polkalend.message("get_collateral");
-  const data = getLiquidity.encode({
+  const getCollatrl = polkalend.message("get_collateral");
+  const data = getCollatrl.encode({
     borrower: FixedSizeBinary.fromHex(borrower),
     token: FixedSizeBinary.fromHex(token),
   });
@@ -175,8 +170,46 @@ export const getCollaterial = async ({
     data
   );
   if (response.result.success) {
-    const responseMessage = getLiquidity.decode(response.result.value);
-    console.log("Result response", responseMessage);
+    const responseMessage = getCollatrl.decode(response.result.value);
+    const liquidity = responseMessage.value;
+
+    return (
+      Number(
+        fixedSizeArray4ToBigint(
+          liquidity as unknown as [bigint, bigint, bigint, bigint]
+        )
+      ) /
+      10 ** WESTEND_ASSETHUB_H160_DECIMALS
+    );
+  }
+};
+export const getDebt = async ({
+  borrower,
+  token,
+  account,
+}: {
+  borrower: string;
+  token: string;
+  account: InjectedPolkadotAccount;
+}) => {
+  await instantiateUser(account);
+
+  const getUserDebt = polkalend.message("get_debt");
+  const data = getUserDebt.encode({
+    borrower: FixedSizeBinary.fromHex(borrower),
+    token: FixedSizeBinary.fromHex(token),
+  });
+
+  const response = await typedApi.apis.ReviveApi.call(
+    account.address,
+    FixedSizeBinary.fromHex(CONTRACT_ADDRESS),
+    0n,
+    undefined,
+    undefined,
+    data
+  );
+  if (response.result.success) {
+    const responseMessage = getUserDebt.decode(response.result.value);
     const liquidity = responseMessage.value;
 
     return (

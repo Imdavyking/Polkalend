@@ -5,7 +5,11 @@ import TextInput from "../../components/TextInput";
 import NumberInput from "../../components/NumberInput";
 import SubmitButton from "../../components/SubmitButton";
 import { useWallet } from "../../context/WalletContext";
-import { acceptLoan, getUserBalance } from "../../services/blockchain.services";
+import {
+  acceptLoan,
+  getDebt,
+  getUserBalance,
+} from "../../services/blockchain.services";
 import { toast } from "react-toastify";
 import { ss58ToH160 } from "../../utils/helpers";
 
@@ -21,13 +25,33 @@ export default function PayLoan() {
   const [loading, setLoading] = useState(false);
   const [balance, setBalance] = useState("");
   const [lender, setLender] = useState("");
+  const [debt, setDebt] = useState("");
   const { account } = useWallet();
+
+  useEffect(() => {
+    const fetchDebt = async () => {
+      if (!account) return;
+      const debt = await getDebt({
+        borrower: ss58ToH160(account.address).asHex(),
+        token: selectedLoanToken.address,
+        account,
+      });
+      if (typeof debt === "undefined") {
+        console.log("collateral is undefined");
+        return;
+      }
+      setDebt(debt.toString());
+    };
+    fetchDebt();
+  }, [account]);
 
   useEffect(() => {
     (async () => {
       if (!account) return;
 
       setLender(ss58ToH160(account.address).asHex());
+
+      if (lender === "") return;
 
       const balance = await getUserBalance(account, selectedLoanToken.address);
 
@@ -36,7 +60,7 @@ export default function PayLoan() {
       }
       setBalance(balance.toString());
     })();
-  }, [account, selectedLoanToken]);
+  }, [account, selectedLoanToken, lender]);
 
   const handlePayLoan = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -89,6 +113,14 @@ export default function PayLoan() {
             placeholder="1000"
             defaultValue={amount}
             onChange={(value) => setAmount(value)}
+          />
+
+          <TextInput
+            label="Total Debt"
+            placeholder="1000"
+            defaultValue={`${debt} ${selectedLoanToken.name}`}
+            disabled
+            onChange={(_) => {}}
           />
           <SubmitButton isSubmitting={loading} />
         </form>

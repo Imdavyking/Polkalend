@@ -33,7 +33,7 @@ export default function AcceptLoanForm() {
     const fetchCollaterial = async () => {
       if (!account) return;
       const collaterial = await getCollaterial({
-        borrower: account.address,
+        borrower: ss58ToH160(account.address).asHex(),
         token: selectedLoanToken.address,
         account,
       });
@@ -49,7 +49,8 @@ export default function AcceptLoanForm() {
   useEffect(() => {
     const fetchDetails = async () => {
       if (!account) return;
-      setLender(ss58ToH160(account.address).asHex());
+      const lender = ss58ToH160(account.address).asHex();
+      setLender(lender);
       const balance = await getLiquidity({
         lender,
         token: selectedLoanToken.address,
@@ -63,7 +64,7 @@ export default function AcceptLoanForm() {
       setBalance(balance.toString());
     };
     fetchDetails();
-  }, [account, selectedLoanToken]);
+  }, [account, selectedLoanToken, lender]);
 
   const handleAcceptLoan = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -117,10 +118,10 @@ export default function AcceptLoanForm() {
             defaultValue={amount}
             onChange={(value) => setAmount(value)}
           />
-          <NumberInput
+          <TextInput
             label="Collaterial"
             placeholder="1000"
-            defaultValue={collateral}
+            defaultValue={`${collateral} ${selectedLoanToken.name}`}
             disabled
             onChange={(_) => {}}
           />

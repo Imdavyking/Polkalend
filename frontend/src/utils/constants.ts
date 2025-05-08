@@ -4,7 +4,7 @@ import { ethers } from "ethers";
 export const tokens = [
   {
     name: "DOT",
-    address: ethers.ZeroAddress, // native
+    address: ethers.ZeroAddress,
     image: polkadot,
   },
   {
