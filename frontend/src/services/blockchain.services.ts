@@ -219,10 +219,7 @@ export const acceptLoan = async ({
   account: InjectedPolkadotAccount;
 }) => {
   await instantiateUser(account);
-  const minimumCollateral = 15000; // TODO: get from contract
 
-  const collateralAmount = Math.trunc(amount * minimumCollateral);
-  console.log("Collateral amount", collateralAmount);
   let amountToLoan = 0n;
 
   if (token === ethers.ZeroAddress) {
@@ -233,6 +230,10 @@ export const acceptLoan = async ({
     const ERC20_DECIMALS = 18; // TODO: get from contract
     amountToLoan = BigInt(amount * 10 ** ERC20_DECIMALS);
   }
+
+  const minimumCollateral = 15000; // TODO: get from contract
+  const collateralAmount = (amountToLoan * BigInt(minimumCollateral)) / 10000n;
+  console.log("Collateral amount", collateralAmount);
 
   const collateralToken = ethers.ZeroAddress;
   const acceptLoan = polkalend.message("accept_loan");
