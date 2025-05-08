@@ -82,6 +82,7 @@ mod polkalend {
         InsufficientTransferredValue,
         YouShouldNotSendDot,
         PaymentDoesNotMatchAmount,
+        RepaymentExceedsDebt,
     }
 
     pub type Result<T> = core::result::Result<T, Error>;
@@ -270,7 +271,7 @@ mod polkalend {
             let debt = self.debt.get((borrower, token)).unwrap_or_default();
 
             if debt < amount {
-                return Err(Error::InsufficientLiquidity);
+                return Err(Error::RepaymentExceedsDebt);
             }
 
             // Transfer repayment to lender
