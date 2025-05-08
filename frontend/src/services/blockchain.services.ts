@@ -28,6 +28,7 @@ function getClient() {
     const ws = prod
       ? "wss://westend-asset-hub-rpc.polkadot.io"
       : "ws://localhost:9944";
+
     clientInstance = createClient(withPolkadotSdkCompat(getWsProvider(ws)));
   }
   return clientInstance;
