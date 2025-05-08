@@ -31,7 +31,7 @@ export default function AcceptLoanForm() {
         account,
       });
 
-      if (!balance) {
+      if (typeof balance === "undefined") {
         return;
       }
       setBalance(balance.toString());
@@ -70,7 +70,7 @@ export default function AcceptLoanForm() {
   return (
     <>
       <div className="max-w-md mx-auto bg-white shadow-lg rounded-xl p-6 space-y-4">
-        <h2 className="text-xl font-bold text-gray-800">Create Loan Offer</h2>
+        <h2 className="text-xl font-bold text-gray-800">Accept Loan</h2>
         <form onSubmit={handleAcceptLoan} className="space-y-4">
           <TextInput
             defaultValue={lender}

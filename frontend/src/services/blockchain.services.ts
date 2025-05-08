@@ -19,11 +19,11 @@ let clientInstance: PolkadotClient | null = null;
 function getClient() {
   if (!clientInstance) {
     console.log("Creating new client instance");
-    clientInstance = createClient(
-      withPolkadotSdkCompat(
-        getWsProvider("wss://westend-asset-hub-rpc.polkadot.io")
-      )
-    );
+    const prod = true;
+    const ws = prod
+      ? "wss://westend-asset-hub-rpc.polkadot.io"
+      : "ws://localhost:9944";
+    clientInstance = createClient(withPolkadotSdkCompat(getWsProvider(ws)));
   }
   return clientInstance;
 }
@@ -121,7 +121,7 @@ export const getLiquidity = async ({
 
   const getLiquidity = polkalend.message("get_liquidity");
   const data = getLiquidity.encode({
-    lender: FixedSizeBinary.fromHex(ss58ToH160(lender).asHex()),
+    lender: FixedSizeBinary.fromHex(lender),
     token: FixedSizeBinary.fromHex(token),
   });
 
@@ -216,18 +216,12 @@ export const acceptLoan = async ({
   lender: string;
   token: string;
   amount: number;
-
   account: InjectedPolkadotAccount;
 }) => {
   await instantiateUser(account);
   const minimumCollateral = 15000; // TODO: get from contract
 
-  // let required_collateral = amount
-  //     .checked_mul(U256::from(self.min_collateral_ratio))
-  //     .unwrap()
-  //     .checked_div(U256::from(10_000))
-  //     .unwrap();
-  const collateralAmount = Math.trunc((amount * minimumCollateral) / 10000);
+  const collateralAmount = Math.trunc(amount * minimumCollateral);
   console.log("Collateral amount", collateralAmount);
   let amountToLoan = 0n;
 
@@ -244,7 +238,7 @@ export const acceptLoan = async ({
   const acceptLoan = polkalend.message("accept_loan");
   const data = acceptLoan.encode({
     token: FixedSizeBinary.fromHex(token),
-    amount: bigintToFixedSizeArray4(BigInt(amount)),
+    amount: bigintToFixedSizeArray4(amountToLoan),
     lender: FixedSizeBinary.fromHex(lender),
     collateral_amount: bigintToFixedSizeArray4(BigInt(collateralAmount)),
     collateral_token: FixedSizeBinary.fromHex(collateralToken),
