@@ -160,7 +160,7 @@ mod polkalend {
             Ok(())
         }
 
-        #[ink(message)]
+        #[ink(message, payable)]
         pub fn lock_collateral(
             &mut self,
             collateral_token: H160,
