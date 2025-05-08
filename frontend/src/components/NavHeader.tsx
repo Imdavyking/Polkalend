@@ -10,7 +10,7 @@ const NavHeader = () => {
     { to: "/create-loan", label: "Create" },
     { to: "/accept-loan", label: "Accept" },
     { to: "/pay-loan", label: "Pay" },
-    { to: "/lock-collaterial", label: "Lock" },
+    { to: "/lock-collateral", label: "Lock" },
   ];
 
   const renderLinks = (isMobile = false) =>
