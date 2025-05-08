@@ -43,6 +43,8 @@ export function ss58ToH160(accountSS58Address: string): Binary {
   // Step 3: Take last 20 bytes (40 hex characters)
   const ethAddress = "0x" + hashed.slice(-40); // Ethereum H160 address
 
+  console.log({ ethAddress });
+
   return new Binary(ethers.getBytes(ethAddress));
 }
 

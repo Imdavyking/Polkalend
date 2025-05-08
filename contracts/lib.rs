@@ -104,6 +104,16 @@ mod polkalend {
             self.env().caller()
         }
 
+        #[ink(message)]
+        pub fn get_owner(&self) -> H160 {
+            self.owner
+        }
+
+        #[ink(message)]
+        pub fn get_min_collateral_ratio(&self) -> U256 {
+            self.min_collateral_ratio
+        }
+
         // allow lenders to deposit tokens into the liquidity pool
         #[ink(message, payable)]
         pub fn create_loan(&mut self, token: H160, amount: U256, duration: U256) -> Result<()> {

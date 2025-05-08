@@ -1,6 +1,6 @@
 import { withPolkadotSdkCompat } from "polkadot-api/polkadot-sdk-compat";
 import { getWsProvider } from "polkadot-api/ws-provider/web";
-import { createClient, FixedSizeBinary } from "polkadot-api";
+import { createClient, FixedSizeBinary, PolkadotClient } from "polkadot-api";
 import { contracts, westend } from "@polkadot-api/descriptors";
 import { getInkClient } from "polkadot-api/ink";
 import { CONTRACT_ADDRESS } from "../utils/constants";
@@ -14,11 +14,22 @@ import { InjectedPolkadotAccount } from "polkadot-api/pjs-signer";
 import { Binary } from "polkadot-api";
 import { ethers } from "ethers";
 
-const client = createClient(
-  withPolkadotSdkCompat(
-    getWsProvider("wss://westend-asset-hub-rpc.polkadot.io")
-  )
-);
+let clientInstance: PolkadotClient | null = null;
+
+function getClient() {
+  if (!clientInstance) {
+    console.log("Creating new client instance");
+    clientInstance = createClient(
+      withPolkadotSdkCompat(
+        getWsProvider("wss://westend-asset-hub-rpc.polkadot.io")
+      )
+    );
+  }
+  return clientInstance;
+}
+
+// Usage
+const client = getClient();
 
 const typedApi = client.getTypedApi(westend);
 const polkalend = getInkClient(contracts.polkalend);
@@ -126,8 +137,11 @@ export const getLiquidity = async ({
     const responseMessage = getLiquidity.decode(response.result.value);
     console.log("Result response", responseMessage);
     const liquidity = responseMessage.value;
-    return fixedSizeArray4ToBigint(
-      liquidity as unknown as [bigint, bigint, bigint, bigint]
+    return (
+      fixedSizeArray4ToBigint(
+        liquidity as unknown as [bigint, bigint, bigint, bigint]
+      ) /
+      10n ** BigInt(WESTEND_ASSETHUB_H160_DECIMALS)
     );
   }
 };
@@ -145,16 +159,30 @@ export const createLoan = async ({
 }) => {
   await instantiateUser(account);
   const createLoan = polkalend.message("create_loan");
+  let value = 0n;
+  let amountWithDecimals = 0n;
+  if (token === ethers.ZeroAddress) {
+    value = BigInt(Math.trunc(amount * 10 ** WESTEND_ASSETHUB_H160_DECIMALS));
+    amountWithDecimals = BigInt(
+      Math.trunc(amount * 10 ** WESTEND_ASSETHUB_H160_DECIMALS)
+    );
+  } else {
+    const ERC20_DECIMALS = 18; // TODO: get from contract
+    amountWithDecimals = BigInt(Math.trunc(amount * 10 ** ERC20_DECIMALS));
+  }
+
+  console.log({
+    value,
+    amountWithDecimals,
+    duration,
+    token,
+  });
 
   const data = createLoan.encode({
     token: FixedSizeBinary.fromHex(token),
-    amount: bigintToFixedSizeArray4(BigInt(amount)),
+    amount: bigintToFixedSizeArray4(amountWithDecimals),
     duration: bigintToFixedSizeArray4(duration),
   });
-
-  const value = BigInt(
-    Math.trunc(amount * 10 ** WESTEND_ASSETHUB_H160_DECIMALS)
-  );
 
   const response = await typedApi.apis.ReviveApi.call(
     account.address,
@@ -167,6 +195,72 @@ export const createLoan = async ({
 
   const result = await typedApi.tx.Revive.call({
     value,
+    data,
+    dest: FixedSizeBinary.fromHex(CONTRACT_ADDRESS),
+    gas_limit: response.gas_required,
+    storage_deposit_limit: response.storage_deposit.value,
+  }).signAndSubmit(account.polkadotSigner);
+  console.log(
+    "tx events",
+    polkalend.event.filter(CONTRACT_ADDRESS, result.events)
+  );
+  return result;
+};
+
+export const acceptLoan = async ({
+  account,
+  lender,
+  token,
+  amount,
+}: {
+  lender: string;
+  token: string;
+  amount: number;
+
+  account: InjectedPolkadotAccount;
+}) => {
+  await instantiateUser(account);
+  const minimumCollateral = 15000; // TODO: get from contract
+
+  // let required_collateral = amount
+  //     .checked_mul(U256::from(self.min_collateral_ratio))
+  //     .unwrap()
+  //     .checked_div(U256::from(10_000))
+  //     .unwrap();
+  const collateralAmount = Math.trunc((amount * minimumCollateral) / 10000);
+  console.log("Collateral amount", collateralAmount);
+  let amountToLoan = 0n;
+
+  if (token === ethers.ZeroAddress) {
+    amountToLoan = BigInt(
+      Math.trunc(amount * 10 ** WESTEND_ASSETHUB_H160_DECIMALS)
+    );
+  } else {
+    const ERC20_DECIMALS = 18; // TODO: get from contract
+    amountToLoan = BigInt(amount * 10 ** ERC20_DECIMALS);
+  }
+
+  const collateralToken = ethers.ZeroAddress;
+  const acceptLoan = polkalend.message("accept_loan");
+  const data = acceptLoan.encode({
+    token: FixedSizeBinary.fromHex(token),
+    amount: bigintToFixedSizeArray4(BigInt(amount)),
+    lender: FixedSizeBinary.fromHex(lender),
+    collateral_amount: bigintToFixedSizeArray4(BigInt(collateralAmount)),
+    collateral_token: FixedSizeBinary.fromHex(collateralToken),
+  });
+
+  const response = await typedApi.apis.ReviveApi.call(
+    account.address,
+    FixedSizeBinary.fromHex(CONTRACT_ADDRESS),
+    0n,
+    undefined,
+    undefined,
+    data
+  );
+
+  const result = await typedApi.tx.Revive.call({
+    value: 0n,
     data,
     dest: FixedSizeBinary.fromHex(CONTRACT_ADDRESS),
     gas_limit: response.gas_required,

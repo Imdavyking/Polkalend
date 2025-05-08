@@ -97,6 +97,12 @@ export default function CreateLoan() {
         />
 
         <NumberInput defaultValue={duration} onChange={setDuration} />
+        <NumberInput
+          defaultValue={amount}
+          onChange={setAmount}
+          label="Amount"
+          placeholder="Enter Amount"
+        />
         <SubmitButton isSubmitting={creatingLoan} />
       </form>
     </div>
