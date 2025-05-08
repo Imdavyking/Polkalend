@@ -60,7 +60,7 @@ export default function Home() {
             <ul className="space-y-3 text-gray-300">
               <li>🔐 No interest — truly DeFi</li>
               <li>⚖️ Fully collateralized using DOT or stablecoins</li>
-              <li>💸 Borrow PLUSD against your locked assets</li>
+              <li>💸 Borrow Tokens against your locked assets</li>
               <li>💼 No credit score, no central authority</li>
             </ul>
           </motion.div>
@@ -79,7 +79,7 @@ export default function Home() {
             <ol className="list-decimal list-inside space-y-3 text-gray-300">
               <li>Deposit your DOT or stablecoins</li>
               <li>Open a loan by locking your collateral</li>
-              <li>Receive PLUSD in your wallet</li>
+              <li>Receive Tokens in your wallet</li>
               <li>Repay anytime and withdraw your collateral</li>
             </ol>
           </motion.div>
