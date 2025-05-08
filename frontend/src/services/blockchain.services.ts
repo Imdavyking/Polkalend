@@ -162,7 +162,6 @@ export const createLoan = async ({
   await instantiateUser(account);
   const createLoan = polkalend.message("create_loan");
   let value = 0n;
-  amount = 0; //TODO: remove this line
   let amountWithDecimals = 0n;
   if (token === ethers.ZeroAddress) {
     value = BigInt(Math.trunc(amount * 10 ** WESTEND_ASSETHUB_H160_DECIMALS));
