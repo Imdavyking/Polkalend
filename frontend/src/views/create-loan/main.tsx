@@ -1,27 +1,27 @@
 import { useEffect, useState } from "react";
 import { tokens } from "../../utils/constants";
 import { toast } from "react-toastify";
-import { FaSpinner } from "react-icons/fa";
 import { createLoan, getUserBalance } from "../../services/blockchain.services";
 import { useWallet } from "../../context/WalletContext";
+
+import SubmitButton from "../../components/SubmitButton";
+import NumberInput from "../../components/durationinput";
+import TokenDropdown from "../../components/tokendropdown";
 export default function CreateLoan() {
   const [selectedToken, setSelectedToken] = useState(tokens[0]);
   const [amount, setAmount] = useState("");
   const [duration, setDuration] = useState("");
   const [creatingLoan, setCreatingLoan] = useState(false);
-  const { account } = useWallet();
   const [balance, setBalance] = useState("");
+  const { account } = useWallet();
 
   useEffect(() => {
     (async () => {
-      console.log({ account });
-      if (!account) {
-        return;
-      }
+      if (!account) return;
       const balance = await getUserBalance(account, selectedToken.address);
       setBalance(balance.toString());
     })();
-  }, [creatingLoan, account, selectedToken]);
+  }, [account, selectedToken]);
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
@@ -85,75 +85,19 @@ export default function CreateLoan() {
 
       <form onSubmit={handleSubmit} className="space-y-4">
         {/* Token Dropdown */}
-        <div>
-          <label className="block text-sm font-medium text-gray-700 mb-1">
-            Select Token
-          </label>
-          <select
-            onChange={(e) =>
-              setSelectedToken(
-                tokens.find((t) => t.address === e.target.value)!
-              )
-            }
-            className="w-full p-2 border rounded-md focus:ring focus:ring-indigo-500"
-          >
-            {tokens.map((token) => (
-              <option key={token.address} value={token.address}>
-                {token.name}
-              </option>
-            ))}
-          </select>
 
-          <div className="flex items-center mt-2 gap-2">
-            {balance}
-            <img
-              src={selectedToken.image}
-              alt={selectedToken.name}
-              className="w-6 h-6"
-            />
-          </div>
-        </div>
+        <TokenDropdown
+          label="Loan Token"
+          tokens={tokens}
+          selectedToken={selectedToken}
+          setSelectedToken={(token) => {
+            setSelectedToken(token);
+          }}
+          balance={balance}
+        />
 
-        {/* Amount */}
-        <div>
-          <label className="block text-sm font-medium text-gray-700">
-            Amount
-          </label>
-          <input
-            type="number"
-            min="1"
-            value={amount}
-            onChange={(e) => setAmount(e.target.value)}
-            className="w-full p-2 border rounded-md focus:ring focus:ring-indigo-500"
-            placeholder="Enter loan amount"
-          />
-        </div>
-
-        {/* Duration */}
-        <div>
-          <label className="block text-sm font-medium text-gray-700">
-            Duration (seconds)
-          </label>
-          <input
-            type="number"
-            min="1"
-            value={duration}
-            onChange={(e) => setDuration(e.target.value)}
-            className="w-full p-2 border rounded-md focus:ring focus:ring-indigo-500"
-            placeholder="e.g. 86400 for 1 day"
-          />
-        </div>
-
-        <button
-          type="submit"
-          className="w-full bg-indigo-600 text-white py-2 px-4 rounded-md hover:bg-indigo-700 flex items-center justify-center transition duration-200"
-        >
-          {creatingLoan ? (
-            <FaSpinner className="w-5 h-5 animate-spin" />
-          ) : (
-            "Submit Loan Offer"
-          )}
-        </button>
+        <NumberInput defaultValue={duration} onChange={setDuration} />
+        <SubmitButton isSubmitting={creatingLoan} />
       </form>
     </div>
   );
