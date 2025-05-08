@@ -138,6 +138,9 @@ https://faucet.polkadot.io/
 
    - Open [UI ink](https://inkv6alpha.netlify.app/).
 
+   <!-- problems I face, websocket couldn't work on brave,switched to chrome, if i emit event in ink v6! get `CodeRejected
+The contract failed to compile or is missing the correct entry points.A more detailed error can be found on the node console if debug messages are enabledby supplying -lruntime::revive=debug``-->
+
 2. Upload and Deploy the Contract:
    - Navigate to the "Contracts" tab and click on "Deploy Contract."
    - Upload the `.contract` file that was generated during the build process.

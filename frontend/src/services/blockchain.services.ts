@@ -101,7 +101,6 @@ export const getUserBalance = async (
       account.address
     );
     const balance = userAccount.data.free;
-    console.log(Number(balance) / 10 ** WESTEND_ASSETHUB_SS58_DECIMALS);
     userBalance = Number(balance) / 10 ** WESTEND_ASSETHUB_SS58_DECIMALS;
   }
 
@@ -137,11 +136,14 @@ export const getLiquidity = async ({
     const responseMessage = getLiquidity.decode(response.result.value);
     console.log("Result response", responseMessage);
     const liquidity = responseMessage.value;
+
     return (
-      fixedSizeArray4ToBigint(
-        liquidity as unknown as [bigint, bigint, bigint, bigint]
+      Number(
+        fixedSizeArray4ToBigint(
+          liquidity as unknown as [bigint, bigint, bigint, bigint]
+        )
       ) /
-      10n ** BigInt(WESTEND_ASSETHUB_H160_DECIMALS)
+      10 ** WESTEND_ASSETHUB_H160_DECIMALS
     );
   }
 };
