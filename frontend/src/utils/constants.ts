@@ -14,3 +14,4 @@ export const tokens = [
   },
 ];
 export const CONTRACT_ADDRESS = import.meta.env.VITE_CONTRACT_ADDRESS;
+export const WS_URL = import.meta.env.VITE_WS_URL;

@@ -8,7 +8,7 @@ import {
 } from "polkadot-api";
 import { contracts, westend } from "@polkadot-api/descriptors";
 import { getInkClient } from "polkadot-api/ink";
-import { CONTRACT_ADDRESS } from "../utils/constants";
+import { CONTRACT_ADDRESS, WS_URL } from "../utils/constants";
 import {
   bigintToFixedSizeArray4,
   convertPublicKeyToSs58,
@@ -24,12 +24,8 @@ let clientInstance: PolkadotClient | null = null;
 function getClient() {
   if (!clientInstance) {
     console.log("Creating new client instance");
-    const prod = true;
-    const ws = prod
-      ? "wss://westend-asset-hub-rpc.polkadot.io"
-      : "ws://localhost:9944";
 
-    clientInstance = createClient(withPolkadotSdkCompat(getWsProvider(ws)));
+    clientInstance = createClient(withPolkadotSdkCompat(getWsProvider(WS_URL)));
   }
   return clientInstance;
 }
