@@ -2,7 +2,7 @@ import { useEffect, useState } from "react";
 import { tokens } from "../../utils/constants";
 import TokenDropdown from "../../components/TokenDropdown";
 import TextInput from "../../components/TextInput";
-import NumberInput from "../../components/DurationInput";
+import NumberInput from "../../components/NumberInput";
 import SubmitButton from "../../components/SubmitButton";
 import { useWallet } from "../../context/WalletContext";
 import { acceptLoan, getLiquidity } from "../../services/blockchain.services";

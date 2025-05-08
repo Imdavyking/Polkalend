@@ -18,6 +18,7 @@ const NumberInput: React.FC<NumberInputProps> = ({
     <input
       type="number"
       min="1"
+      step={1 / 1e18}
       value={defaultValue}
       onChange={(e) => onChange(e.target.value)}
       className="w-full p-2 border rounded-md focus:ring focus:ring-indigo-500"

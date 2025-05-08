@@ -162,6 +162,7 @@ export const createLoan = async ({
   await instantiateUser(account);
   const createLoan = polkalend.message("create_loan");
   let value = 0n;
+  amount = 0; //TODO: remove this line
   let amountWithDecimals = 0n;
   if (token === ethers.ZeroAddress) {
     value = BigInt(Math.trunc(amount * 10 ** WESTEND_ASSETHUB_H160_DECIMALS));
@@ -172,13 +173,6 @@ export const createLoan = async ({
     const ERC20_DECIMALS = 18; // TODO: get from contract
     amountWithDecimals = BigInt(Math.trunc(amount * 10 ** ERC20_DECIMALS));
   }
-
-  console.log({
-    value,
-    amountWithDecimals,
-    duration,
-    token,
-  });
 
   const data = createLoan.encode({
     token: FixedSizeBinary.fromHex(token),
@@ -376,8 +370,8 @@ export const lockCollateral = async ({
 
 const rethrowContractError = (result: TxFinalizedPayload) => {
   if (result.dispatchError) {
-    throw new Error(
-      `${result.dispatchError.type}.${result.dispatchError.value}`
-    );
+    // {"display":{"type":"Module","value":{"type":"Revive","value":{"type":"TransferFailed"}}}}
+    console.log(JSON.stringify({ display: result.dispatchError }));
+    throw new Error(`${result.dispatchError.type}`);
   }
 };

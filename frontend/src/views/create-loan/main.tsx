@@ -5,7 +5,7 @@ import { createLoan, getUserBalance } from "../../services/blockchain.services";
 import { useWallet } from "../../context/WalletContext";
 
 import SubmitButton from "../../components/SubmitButton";
-import NumberInput from "../../components/DurationInput";
+import NumberInput from "../../components/NumberInput";
 import TokenDropdown from "../../components/TokenDropdown";
 export default function CreateLoan() {
   const [selectedToken, setSelectedToken] = useState(tokens[0]);
